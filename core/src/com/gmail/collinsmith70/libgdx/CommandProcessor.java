@@ -11,7 +11,7 @@ public class CommandProcessor implements Console.Processor {
   private static final String TAG = "CommandProcessor";
 
   @NonNull
-  private CommandManager COMMANDS;
+  private final CommandManager COMMANDS;
 
   public CommandProcessor(@NonNull CommandManager commandManager) {
     this.COMMANDS = commandManager;
