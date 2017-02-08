@@ -14,7 +14,6 @@ import com.gmail.collinsmith70.serializer.FloatStringSerializer;
 import com.gmail.collinsmith70.serializer.IntegerStringSerializer;
 import com.gmail.collinsmith70.serializer.LocaleStringSerializer;
 import com.gmail.collinsmith70.serializer.LongStringSerializer;
-import com.gmail.collinsmith70.serializer.ObjectStringSerializer;
 import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.serializer.ShortStringSerializer;
 import com.gmail.collinsmith70.serializer.StringSerializer;
@@ -49,15 +48,14 @@ public abstract class SaveableCvarManager extends CvarManager {
   private static final Map<Class, StringSerializer> DEFAULT_SERIALIZERS
       = ImmutableMap.<Class, StringSerializer>builder()
       .put(Character.class, CharacterStringSerializer.INSTANCE)
-      .put(String.class,ObjectStringSerializer.INSTANCE)
-      .put(Boolean.class,BooleanStringSerializer.INSTANCE)
-      .put(Byte.class,ByteStringSerializer.INSTANCE)
-      .put(Short.class,ShortStringSerializer.INSTANCE)
-      .put(Integer.class,IntegerStringSerializer.INSTANCE)
-      .put(Long.class,LongStringSerializer.INSTANCE)
-      .put(Float.class,FloatStringSerializer.INSTANCE)
-      .put(Double.class,DoubleStringSerializer.INSTANCE)
-      .put(Locale.class,LocaleStringSerializer.INSTANCE)
+      .put(Boolean.class, BooleanStringSerializer.INSTANCE)
+      .put(Byte.class, ByteStringSerializer.INSTANCE)
+      .put(Short.class, ShortStringSerializer.INSTANCE)
+      .put(Integer.class, IntegerStringSerializer.INSTANCE)
+      .put(Long.class, LongStringSerializer.INSTANCE)
+      .put(Float.class, FloatStringSerializer.INSTANCE)
+      .put(Double.class, DoubleStringSerializer.INSTANCE)
+      .put(Locale.class, LocaleStringSerializer.INSTANCE)
       .build();
 
   /**
