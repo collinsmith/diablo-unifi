@@ -2,13 +2,7 @@ package com.gmail.collinsmith70.serializer;
 
 import android.support.annotation.NonNull;
 
-/**
- * Serializer which (de)serializes a {@link Boolean} object into its {@link String} representation.
- */
 public enum BooleanStringSerializer implements StringSerializer<Boolean> {
-  /**
-   * @see BooleanStringSerializer
-   */
   INSTANCE;
 
   @Override
@@ -19,15 +13,15 @@ public enum BooleanStringSerializer implements StringSerializer<Boolean> {
 
   @Override
   @NonNull
-  public Boolean deserialize(@NonNull String obj) {
-    if (obj.equalsIgnoreCase("true")) {
+  public Boolean deserialize(@NonNull String string) {
+    if (string.equalsIgnoreCase("true")) {
       return Boolean.TRUE;
-    } else if (obj.equalsIgnoreCase("yes")) {
+    } else if (string.equalsIgnoreCase("yes")) {
       return Boolean.TRUE;
     } else {
       try {
-        int i = Integer.parseInt(obj);
-        return i > 0;
+        int i = Integer.parseInt(string);
+        return i > 0 ? Boolean.TRUE : Boolean.FALSE;
       } catch (NumberFormatException e) {
         return Boolean.FALSE;
       }

@@ -2,6 +2,8 @@ package com.gmail.collinsmith70.serializer;
 
 import android.support.annotation.NonNull;
 
+import org.apache.commons.lang3.LocaleUtils;
+
 import java.util.Locale;
 
 public enum LocaleStringSerializer implements StringSerializer<Locale> {
@@ -9,14 +11,18 @@ public enum LocaleStringSerializer implements StringSerializer<Locale> {
 
   @Override
   @NonNull
-  public String serialize(@NonNull Locale obj) {
-    return obj.toLanguageTag();
+  public String serialize(@NonNull Locale locale) {
+    return locale.toString();
   }
 
   @Override
   @NonNull
-  public Locale deserialize(@NonNull String obj) {
-    return Locale.forLanguageTag(obj);
+  public Locale deserialize(@NonNull String string) {
+    try {
+      return LocaleUtils.toLocale(string);
+    } catch (Throwable t) {
+      throw new SerializeException(t);
+    }
   }
 
 }

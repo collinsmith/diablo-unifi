@@ -2,13 +2,7 @@ package com.gmail.collinsmith70.serializer;
 
 import android.support.annotation.NonNull;
 
-/**
- * Serializer which (de)serializes a {@link Short} object into its {@link String} representation.
- */
 public enum ShortStringSerializer implements StringSerializer<Short> {
-  /**
-   * @see ShortStringSerializer
-   */
   INSTANCE;
 
   @Override
@@ -19,8 +13,12 @@ public enum ShortStringSerializer implements StringSerializer<Short> {
 
   @Override
   @NonNull
-  public Short deserialize(@NonNull String obj) {
-    return Short.parseShort(obj);
+  public Short deserialize(@NonNull String string) {
+    try {
+      return Short.parseShort(string);
+    } catch (Throwable t) {
+      throw new SerializeException(t);
+    }
   }
 
 }

@@ -2,13 +2,7 @@ package com.gmail.collinsmith70.serializer;
 
 import android.support.annotation.NonNull;
 
-/**
- * Serializer which (de)serializes a {@link Integer} object into its {@link String} representation.
- */
 public enum IntegerStringSerializer implements StringSerializer<Integer> {
-  /**
-   * @see IntegerStringSerializer
-   */
   INSTANCE;
 
   @Override
@@ -20,7 +14,11 @@ public enum IntegerStringSerializer implements StringSerializer<Integer> {
   @Override
   @NonNull
   public Integer deserialize(@NonNull String obj) {
-    return Integer.parseInt(obj);
+    try {
+      return Integer.parseInt(obj);
+    } catch (Throwable t) {
+      throw new SerializeException(t);
+    }
   }
 
 }

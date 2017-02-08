@@ -2,13 +2,7 @@ package com.gmail.collinsmith70.serializer;
 
 import android.support.annotation.NonNull;
 
-/**
- * Serializer which (de)serializes a {@link Long} object into its {@link String} representation.
- */
 public enum LongStringSerializer implements StringSerializer<Long> {
-  /**
-   * @see LongStringSerializer
-   */
   INSTANCE;
 
   @Override
@@ -19,8 +13,12 @@ public enum LongStringSerializer implements StringSerializer<Long> {
 
   @Override
   @NonNull
-  public Long deserialize(@NonNull String obj) {
-    return Long.parseLong(obj);
+  public Long deserialize(@NonNull String string) {
+    try {
+      return Long.parseLong(string);
+    } catch (Throwable t) {
+      throw new SerializeException(t);
+    }
   }
 
 }

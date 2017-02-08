@@ -2,13 +2,7 @@ package com.gmail.collinsmith70.serializer;
 
 import android.support.annotation.NonNull;
 
-/**
- * Serializer which (de)serializes a {@link Float} object into its {@link String} representation.
- */
 public enum FloatStringSerializer implements StringSerializer<Float> {
-  /**
-   * @see FloatStringSerializer
-   */
   INSTANCE;
 
   @Override
@@ -19,8 +13,12 @@ public enum FloatStringSerializer implements StringSerializer<Float> {
 
   @Override
   @NonNull
-  public Float deserialize(@NonNull String obj) {
-    return Float.parseFloat(obj);
+  public Float deserialize(@NonNull String string) {
+    try {
+      return Float.parseFloat(string);
+    } catch (Throwable t) {
+      throw new SerializeException(t);
+    }
   }
 
 }
