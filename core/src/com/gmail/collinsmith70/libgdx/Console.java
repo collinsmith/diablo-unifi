@@ -13,6 +13,7 @@ import java.io.PrintStream;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+@SuppressWarnings("WeakerAccess")
 public class Console extends PrintStream implements InputProcessor {
 
   private static final String TAG = "Console";
@@ -56,11 +57,11 @@ public class Console extends PrintStream implements InputProcessor {
    *
    * @param out OutputStream to proxy
    */
-  public Console(@Nullable OutputStream out) {
+  public Console(@NonNull OutputStream out) {
     super(out, true);
-    this.STREAM_LISTENERS = new CopyOnWriteArraySet<PrintStreamListener>();
-    this.BUFFER_LISTENERS = new CopyOnWriteArraySet<BufferListener>();
-    this.COMMIT_PROCESSORS = new CopyOnWriteArraySet<Processor>();
+    this.STREAM_LISTENERS = new CopyOnWriteArraySet<>();
+    this.BUFFER_LISTENERS = new CopyOnWriteArraySet<>();
+    this.COMMIT_PROCESSORS = new CopyOnWriteArraySet<>();
     this.BUFFER = new StringBuffer(INITIAL_BUFFER_CAPACITY);
   }
 
@@ -72,7 +73,7 @@ public class Console extends PrintStream implements InputProcessor {
    * @param str The message to output
    */
   @Override
-  public void println(@Nullable String str) {
+  public void println(@NonNull String str) {
     super.println(str);
     for (PrintStreamListener l : STREAM_LISTENERS) {
       l.onPrintln(str);
