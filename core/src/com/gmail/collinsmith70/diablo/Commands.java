@@ -11,9 +11,8 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 class Commands {
-
-  private static final String TAG = "Commands";
 
   public static List<Throwable> addTo(CommandManager commandManager) {
     return addTo(commandManager, Commands.class, new ArrayList<Throwable>(0));
