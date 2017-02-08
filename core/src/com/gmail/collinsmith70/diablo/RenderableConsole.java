@@ -63,6 +63,10 @@ public class RenderableConsole extends Console implements Console.BufferListener
     return font;
   }
 
+  public void clear() {
+    OUTPUT.clear();
+  }
+
   public void create() {
     Pixmap solidColorPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
     solidColorPixmap.setColor(0.0f, 0.0f, 0.0f, 0.5f);
