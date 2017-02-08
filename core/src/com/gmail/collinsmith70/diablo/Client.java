@@ -23,7 +23,7 @@ import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.CommandProcessor;
 import com.gmail.collinsmith70.libgdx.CvarProcessor;
 import com.gmail.collinsmith70.libgdx.GdxCvarManager;
-import com.gmail.collinsmith70.libgdx.key.GdxKeyManager;
+import com.gmail.collinsmith70.libgdx.key.GdxKeyMapper;
 import com.gmail.collinsmith70.libgdx.key.MappedKey;
 import com.gmail.collinsmith70.libgdx.util.MutexedInputProcessor;
 
@@ -41,7 +41,7 @@ public class Client extends ApplicationAdapter {
   public final CommandManager commands;
 
   private GdxCvarManager cvars;
-  private GdxKeyManager keys;
+  private GdxKeyMapper keys;
 
   private com.badlogic.gdx.InputProcessor inputProcessor;
 
@@ -90,7 +90,7 @@ public class Client extends ApplicationAdapter {
   }
 
   @Nullable
-  public GdxKeyManager keys() {
+  public GdxKeyMapper keys() {
     return keys;
   }
 
@@ -123,7 +123,7 @@ public class Client extends ApplicationAdapter {
     console.create();
 
     this.cvars = new GdxCvarManager();
-    this.keys = new GdxKeyManager();
+    this.keys = new GdxKeyMapper();
 
     Commands.addTo(commands);
     Cvars.addTo(cvars);
@@ -209,7 +209,7 @@ public class Client extends ApplicationAdapter {
     Gdx.app.debug(CLIENT_LOG_TAG, "Saving CVARS...");
     cvars.saveAll();
 
-    Gdx.app.debug(CLIENT_LOG_TAG, "Saving keys assignments...");
+    Gdx.app.debug(CLIENT_LOG_TAG, "Saving key assignments...");
     keys.saveAll();
 
     Gdx.app.debug(CLIENT_LOG_TAG, "Disposing client...");
