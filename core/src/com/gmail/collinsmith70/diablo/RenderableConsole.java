@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.Timer;
 import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
@@ -31,7 +32,6 @@ public class RenderableConsole extends Console implements Console.BufferListener
   private float outputOffset;
 
   private boolean visible;
-  private boolean showCaret = true;
   private String bufferPrefix = ">";
 
   @Nullable
@@ -39,6 +39,13 @@ public class RenderableConsole extends Console implements Console.BufferListener
 
   private Texture modalBackgroundTexture;
   private Texture highlightBackgroundTexture;
+  private Texture cursorTexture;
+
+  private static final float CARET_BLINK_DELAY = 0.5f;
+  private static final float CARET_HOLD_DELAY = 1.0f;
+  private Timer caretTimer;
+  private Timer.Task caretBlinkTask;
+  private boolean showCaret;
 
   public RenderableConsole(@NonNull Client client, @Nullable OutputStream out) {
     super(out);
@@ -54,6 +61,7 @@ public class RenderableConsole extends Console implements Console.BufferListener
   public void setVisible(boolean b) {
     if (this.visible != b) {
       this.visible = b;
+      updateCaret();
       Gdx.input.setOnscreenKeyboardVisible(true);
     }
   }
@@ -75,6 +83,12 @@ public class RenderableConsole extends Console implements Console.BufferListener
     solidColorPixmap.dispose();
 
     solidColorPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+    solidColorPixmap.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+    solidColorPixmap.fill();
+    cursorTexture = new Texture(solidColorPixmap);
+    solidColorPixmap.dispose();
+
+    solidColorPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
     solidColorPixmap.setColor(0.0f, 0.0f, 1.0f, 0.5f);
     solidColorPixmap.fill();
     highlightBackgroundTexture = new Texture(solidColorPixmap);
@@ -89,6 +103,24 @@ public class RenderableConsole extends Console implements Console.BufferListener
         font = client.assets.get(to);
       }
     });
+
+    caretTimer = new Timer();
+    caretBlinkTask = new Timer.Task() {
+      @Override
+      public void run() {
+        showCaret = !showCaret;
+      }
+    };
+
+    clearBuffer();
+    updateCaret();
+    caretTimer.start();
+  }
+
+  private void updateCaret() {
+    caretBlinkTask.cancel();
+    caretTimer.schedule(caretBlinkTask, CARET_HOLD_DELAY, CARET_BLINK_DELAY);
+    this.showCaret = true;
   }
 
   public void render(Batch b) {
@@ -106,7 +138,9 @@ public class RenderableConsole extends Console implements Console.BufferListener
     GlyphLayout glyphs = font.draw(b, bufferPrefix + " " + bufferContents, 0, height);
     if (showCaret) {
       glyphs.setText(font, bufferPrefix + " " + bufferContents.substring(0, getCaretPosition()));
-      font.draw(b, "_", glyphs.width - 4, height - 1);
+      b.draw(cursorTexture,
+          glyphs.width, height - font.getCapHeight(),
+          2, font.getCapHeight());
     }
 
     float position;
@@ -132,6 +166,7 @@ public class RenderableConsole extends Console implements Console.BufferListener
 
   @Override
   public void dispose() {
+    cursorTexture.dispose();
     modalBackgroundTexture.dispose();
     highlightBackgroundTexture.dispose();
   }
@@ -161,7 +196,9 @@ public class RenderableConsole extends Console implements Console.BufferListener
       return true;
     }
 
-    return super.keyTyped(ch);
+    boolean keyTyped = super.keyTyped(ch);
+    updateCaret();
+    return keyTyped;
   }
 
   @Override
