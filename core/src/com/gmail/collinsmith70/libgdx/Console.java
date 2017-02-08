@@ -72,7 +72,7 @@ public class Console extends PrintStream implements InputProcessor {
    * @param str The message to output
    */
   @Override
-  public void println(String str) {
+  public void println(@Nullable String str) {
     super.println(str);
     for (PrintStreamListener l : STREAM_LISTENERS) {
       l.onPrintln(str);

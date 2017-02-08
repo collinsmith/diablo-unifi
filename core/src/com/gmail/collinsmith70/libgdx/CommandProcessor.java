@@ -2,6 +2,7 @@ package com.gmail.collinsmith70.libgdx;
 
 import android.support.annotation.NonNull;
 
+import com.badlogic.gdx.Gdx;
 import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.command.CommandManager;
 
@@ -25,7 +26,12 @@ public class CommandProcessor implements Console.Processor {
     }
 
     if (cmd.minArgs() <= args.length - 1) {
-      cmd.newInstance(args).execute();
+      try {
+        cmd.newInstance(args).execute();
+      } catch (Exception e) {
+        String message = e.getMessage();
+        Gdx.app.error(TAG, message == null ? e.getClass().getName() : message, e);
+      }
     } else {
       console.println(String.format("Bad syntax, expected \"%s\"", cmd));
     }

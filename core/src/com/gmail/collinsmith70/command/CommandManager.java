@@ -9,6 +9,7 @@ import org.apache.commons.collections4.Trie;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.SortedMap;
 
@@ -30,7 +31,7 @@ public class CommandManager {
 
   @NonNull
   public Collection<Command> getCommands() {
-    return COMMANDS.values();
+    return new HashSet<>(COMMANDS.values());
   }
 
   @NonNull
@@ -50,7 +51,7 @@ public class CommandManager {
     command.addAssignmentListener(new Command.AssignmentListener() {
       @Override
       public void onAssigned(@NonNull Command command, @NonNull String alias) {
-        Gdx.app.debug("CommandManager", "assigning " + alias.toLowerCase() + " to " + command);
+        Gdx.app.debug("CommandManager", "assigning \"" + alias.toLowerCase() + "\" to " + command);
         COMMANDS.put(alias.toLowerCase(), command);
       }
 
