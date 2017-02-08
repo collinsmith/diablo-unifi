@@ -1,5 +1,8 @@
 package com.gmail.collinsmith70.cvar;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -12,10 +15,13 @@ import com.gmail.collinsmith70.serializer.IntegerStringSerializer;
 import com.gmail.collinsmith70.serializer.LocaleStringSerializer;
 import com.gmail.collinsmith70.serializer.LongStringSerializer;
 import com.gmail.collinsmith70.serializer.ObjectStringSerializer;
+import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.serializer.ShortStringSerializer;
 import com.gmail.collinsmith70.serializer.StringSerializer;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@code SaveableCvarManager} contains mappings between class types and {@link StringSerializer}
  * instances which can be used to (de)serialize them for saving/loading.
  */
+@SuppressWarnings({ "SameParameterValue", "WeakerAccess", "unused", "ConstantConditions" })
 public abstract class SaveableCvarManager extends CvarManager {
 
   /**
@@ -40,20 +47,18 @@ public abstract class SaveableCvarManager extends CvarManager {
    */
   @NonNull
   private static final Map<Class, StringSerializer> DEFAULT_SERIALIZERS
-          = new HashMap<Class, StringSerializer>();
-
-  static {
-    DEFAULT_SERIALIZERS.put(Character.class, CharacterStringSerializer.INSTANCE);
-    DEFAULT_SERIALIZERS.put(String.class, ObjectStringSerializer.INSTANCE);
-    DEFAULT_SERIALIZERS.put(Boolean.class, BooleanStringSerializer.INSTANCE);
-    DEFAULT_SERIALIZERS.put(Byte.class, ByteStringSerializer.INSTANCE);
-    DEFAULT_SERIALIZERS.put(Short.class, ShortStringSerializer.INSTANCE);
-    DEFAULT_SERIALIZERS.put(Integer.class, IntegerStringSerializer.INSTANCE);
-    DEFAULT_SERIALIZERS.put(Long.class, LongStringSerializer.INSTANCE);
-    DEFAULT_SERIALIZERS.put(Float.class, FloatStringSerializer.INSTANCE);
-    DEFAULT_SERIALIZERS.put(Double.class, DoubleStringSerializer.INSTANCE);
-    DEFAULT_SERIALIZERS.put(Locale.class, LocaleStringSerializer.INSTANCE);
-  }
+      = ImmutableMap.<Class, StringSerializer>builder()
+      .put(Character.class, CharacterStringSerializer.INSTANCE)
+      .put(String.class,ObjectStringSerializer.INSTANCE)
+      .put(Boolean.class,BooleanStringSerializer.INSTANCE)
+      .put(Byte.class,ByteStringSerializer.INSTANCE)
+      .put(Short.class,ShortStringSerializer.INSTANCE)
+      .put(Integer.class,IntegerStringSerializer.INSTANCE)
+      .put(Long.class,LongStringSerializer.INSTANCE)
+      .put(Float.class,FloatStringSerializer.INSTANCE)
+      .put(Double.class,DoubleStringSerializer.INSTANCE)
+      .put(Locale.class,LocaleStringSerializer.INSTANCE)
+      .build();
 
   /**
    * {@linkplain Map Mapping} of {@link Class} instances to their default {@link StringSerializer}
@@ -92,7 +97,7 @@ public abstract class SaveableCvarManager extends CvarManager {
   public SaveableCvarManager(boolean autosave) {
     super();
     this.autosaving = autosave;
-    this.SERIALIZERS = new ConcurrentHashMap<Class, StringSerializer>(DEFAULT_SERIALIZERS);
+    this.SERIALIZERS = new ConcurrentHashMap<>(DEFAULT_SERIALIZERS);
   }
 
   /**
@@ -144,20 +149,26 @@ public abstract class SaveableCvarManager extends CvarManager {
    * @param cvar {@inheritDoc}
    *
    * @return {@inheritDoc}
+   *
+   * @throws SerializeException if there was an issue deserializing the saved value of {@code
+   *     cvar}. For more details on the specific cause, see {@link SerializeException#getCause()}.
+   *     If a {@code SerializeException} is thrown, the {@code cvar} will still be added normally.
    */
   @Override
+  @SuppressWarnings({ "CaughtExceptionImmediatelyRethrown", "finally", "ReturnInsideFinallyBlock" })
   public <T> boolean add(@NonNull Cvar<T> cvar) {
-    boolean added = super.add(cvar);
-    load(cvar);
-    return added;
+    try {
+      T value = load(cvar);
+      cvar.setValue(value);
+    } catch (Throwable t) {
+      throw t;
+    } finally {
+      return super.add(cvar);
+    }
   }
 
   /**
-   * Loads the specified {@link Cvar}.
-   * <p>
-   * Note: It is the responsibility of implementing classes to determine how the value should be
-   *       loaded, as well as actually {@linkplain Cvar#setValue setting that value} on the
-   *       {@code Cvar} itself.
+   * Loads the persistent value of the specified {@link Cvar} from storage.
    *
    * @param <T>  The {@linkplain Class type} of the {@linkplain Cvar#getValue variable} which the
    *             {@code Cvar} represents
@@ -166,10 +177,30 @@ public abstract class SaveableCvarManager extends CvarManager {
    * @return The {@linkplain StringSerializer#deserialize deserialized} {@linkplain Cvar#getValue
    *         value} which was loaded from a persistent backend
    *
+   * @throws SerializeException if there was an issue deserializing the saved value of {@code
+   *     cvar}. For more details on the specific cause, see {@link SerializeException#getCause()}.
+   *
    * @see Cvar#setValue
+   * @see #save
    */
   @Nullable
   public abstract <T> T load(@NonNull Cvar<T> cvar);
+
+  /**
+   * Serializes and saves the specified {@link Cvar} to a persistent backend (typically some
+   * implementation of a {@link java.util.prefs.Preferences}). <p> Note: It is the responsibility of
+   * implementing classes to determine how the value should be saved.
+   *
+   * @param <T>  The {@linkplain Class type} of the {@linkplain Cvar#getValue variable} which the
+   *             {@code Cvar} represents
+   * @param cvar The {@code Cvar} instance to save
+   *
+   * @throws SerializeException if there was an issue serializing the value of {@code cvar}. For
+   *     more details on the specific cause, see {@link SerializeException#getCause()}.
+   *
+   * @see #load
+   */
+  public abstract <T> void save(@NonNull Cvar<T> cvar);
 
   /**
    * {@inheritDoc}
@@ -180,6 +211,9 @@ public abstract class SaveableCvarManager extends CvarManager {
    * @param cvar {@inheritDoc}
    * @param from {@inheritDoc}
    * @param to   {@inheritDoc}
+   *
+   * @throws SerializeException if there was an issue serializing the value of {@code cvar}. For
+   *     more details on the specific cause, see {@link SerializeException#getCause()}.
    *
    * @see #isAutosaving
    * @see #setAutosaving
@@ -192,28 +226,36 @@ public abstract class SaveableCvarManager extends CvarManager {
   }
 
   /**
-   * Serializes and saves the specified {@link Cvar} to a persistent backend (typically some
-   * implementation of a {@link java.util.prefs.Preferences}).
-   * <p>
-   * Note: It is the responsibility of implementing classes to determine how the value should be
-   * saved.
-   *
-   * @param <T>  The {@linkplain Class type} of the {@linkplain Cvar#getValue variable} which the
-   *             {@code Cvar} represents
-   * @param cvar The {@code Cvar} instance to save
-   */
-  public abstract <T> void save(@NonNull Cvar<T> cvar);
-
-  /**
    * Aggregate operation which {@linkplain #save saves} all {@link Cvar} instances
    * {@linkplain #isManaging managed} by this {@link SaveableCvarManager}.
    *
+   * @return A list of {@link SerializeException} instances, if any, that were thrown when
+   *         serializing the values of the {@code Cvar} instances managed by this {@code
+   *         SaveableCvarManager}. For more details on the specific causes of the exceptions, see
+   *         {@link SerializeException#getCause()}.
+   *
    * @see #save
    */
-  public void saveAll() {
+  @NonNull
+  public List<SerializeException> saveAll() {
+    List<SerializeException> exceptions = null;
     for (Cvar cvar : getCvars()) {
-      save(cvar);
+      try {
+        save(cvar);
+      } catch (SerializeException e) {
+        if (exceptions == null) {
+          exceptions = new ArrayList<>();
+        }
+
+        exceptions.add(e);
+      }
     }
+
+    if (exceptions == null) {
+      exceptions = Collections.emptyList();
+    }
+
+    return exceptions;
   }
 
   /**
@@ -228,11 +270,9 @@ public abstract class SaveableCvarManager extends CvarManager {
    * @see #getSerializer(Cvar)
    */
   @Nullable
+  @SuppressWarnings("unchecked")
   public <T> StringSerializer<T> getSerializer(@NonNull Class<T> type) {
-    if (type == null) {
-      throw new IllegalArgumentException("type is not allowed to be null");
-    }
-
+    Preconditions.checkArgument(type != null, "type is not allowed to be null");
     return (StringSerializer<T>) SERIALIZERS.get(type);
   }
 
@@ -301,8 +341,8 @@ public abstract class SaveableCvarManager extends CvarManager {
    * @return {@code true} if there is a {@code StringSerializer} associated with the specified
    *         {@code Cvar} instance's {@linkplain Cvar#getType() type}, otherwise {@code false}
    */
-  public boolean containsSerializer(@NonNull Cvar cvar) {
-    return containsSerializer(cvar.getType());
+  public boolean canSerialize(@NonNull Cvar cvar) {
+    return canSerialize(cvar.getType());
   }
 
   /**
@@ -312,15 +352,11 @@ public abstract class SaveableCvarManager extends CvarManager {
    * @param type The {@linkplain Class type} to check if there is an associated
    *             {@code StringSerializer} for
    *
-   * @return {@code true} if there is a {@code StringSerializer} assocaited with the specified
+   * @return {@code true} if there is a {@code StringSerializer} associated with the specified
    *         type, otherwise {@code false}
    */
-  public boolean containsSerializer(@NonNull Class type) {
-    if (type == null) {
-      throw new IllegalArgumentException("type is not allowed to be null");
-    }
-
-    return SERIALIZERS.containsKey(type);
+  public boolean canSerialize(@Nullable Class type) {
+    return type != null && SERIALIZERS.containsKey(type);
   }
 
 }

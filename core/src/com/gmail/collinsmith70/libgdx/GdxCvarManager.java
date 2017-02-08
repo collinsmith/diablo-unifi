@@ -8,6 +8,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.cvar.SaveableCvarManager;
+import com.gmail.collinsmith70.serializer.StringSerializer;
 
 public class GdxCvarManager extends SaveableCvarManager {
 
@@ -21,19 +22,21 @@ public class GdxCvarManager extends SaveableCvarManager {
   }
 
   @Override
+  @SuppressWarnings("ConstantConditions")
   public <T> void save(@NonNull Cvar<T> cvar) {
-    if (!isManaging(cvar)) {
-      throw new IllegalArgumentException(String.format("Cvar %s is not managed by this CvarManager",
-          cvar.getAlias()));
+    if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG && !isManaging(cvar)) {
+      Gdx.app.debug(TAG, String.format("cvar %s is being saved by a cvar manager not managing it",
+          cvar));
     }
 
-    if (!containsSerializer(cvar)) {
-      Gdx.app.error(TAG, String.format("Cvar %s cannot be saved (no serializer found)",
-          cvar.getAlias()));
+    StringSerializer<T> serializer = getSerializer(cvar);
+    if (serializer == null) {
+      Gdx.app.error(TAG, String.format("cvar %s cannot be saved (no serializer found for %s)",
+          cvar.getAlias(), cvar.getType().getName()));
       return;
     }
 
-    PREFERENCES.putString(cvar.getAlias(), getSerializer(cvar).serialize(cvar.getValue()));
+    PREFERENCES.putString(cvar.getAlias(), serializer.serialize(cvar.getValue()));
     PREFERENCES.flush();
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
       Gdx.app.debug(TAG, String.format("%s saved as %s [%s]",
@@ -41,16 +44,19 @@ public class GdxCvarManager extends SaveableCvarManager {
     }
   }
 
+  @Nullable
   @Override
   public <T> T load(@NonNull Cvar<T> cvar) {
-    if (!isManaging(cvar)) {
-      throw new IllegalArgumentException(String.format("Cvar %s is not managed by this CvarManager",
-          cvar.getAlias()));
+    StringSerializer<T> serializer = getSerializer(cvar);
+    if (serializer == null) {
+      Gdx.app.error(TAG, String.format("cvar %s cannot be loaded (no deserializer found for %s)",
+          cvar.getAlias(), cvar.getType().getName()));
+      return cvar.getDefaultValue();
     }
 
     String serializedValue = PREFERENCES.getString(cvar.getAlias());
-    if (serializedValue == null || serializedValue.isEmpty()) {
-      serializedValue = getSerializer(cvar).serialize(cvar.getDefaultValue());
+    if (serializedValue == null) {
+      return cvar.getDefaultValue();
     }
 
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
@@ -58,14 +64,14 @@ public class GdxCvarManager extends SaveableCvarManager {
           cvar.getAlias(), serializedValue, cvar.getType().getName()));
     }
 
-    return getSerializer(cvar).deserialize(serializedValue);
+    return serializer.deserialize(serializedValue);
   }
 
   @Override
   public void onChanged(@NonNull Cvar cvar, @Nullable Object from, @Nullable Object to) {
     super.onChanged(cvar, from, to);
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
-      Gdx.app.debug(TAG, String.format("Changed %s from %s to %s", cvar.getAlias(), from, to));
+      Gdx.app.debug(TAG, String.format("changed %s from %s to %s", cvar.getAlias(), from, to));
     }
   }
 

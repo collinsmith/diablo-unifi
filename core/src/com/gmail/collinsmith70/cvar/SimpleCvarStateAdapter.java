@@ -11,7 +11,7 @@ import android.support.annotation.Nullable;
  * @param <T> {@linkplain Class type} of the {@linkplain Cvar#getValue variable} which the
  *            {@link Cvar} represents
  */
-public class SimpleCvarStateAdapter<T> implements Cvar.StateListener<T> {
+public abstract class SimpleCvarStateAdapter<T> implements Cvar.StateListener<T> {
 
   /**
    * Called synchronously when the value of a {@link Cvar} changes.

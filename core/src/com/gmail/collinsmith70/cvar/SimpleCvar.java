@@ -2,11 +2,11 @@ package com.gmail.collinsmith70.cvar;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.serializer.StringSerializer;
 
 import java.util.Set;
@@ -17,6 +17,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  *
  * @param <T> {@inheritDoc}
  */
+@SuppressWarnings("ConstantConditions")
 public class SimpleCvar<T> implements Cvar<T> {
 
   /**
@@ -26,7 +27,7 @@ public class SimpleCvar<T> implements Cvar<T> {
    * @see <a href="https://en.wikipedia.org/wiki/Attribute%E2%80%93value_pair">Wikipedia article on key-value pairs</a>
    * @see #getAlias
    */
-  @Nullable
+  @NonNull
   private final String ALIAS;
 
   /**
@@ -86,8 +87,6 @@ public class SimpleCvar<T> implements Cvar<T> {
 
   /**
    * Constructs a new {@code SimpleCvar} instance.
-   * <p>
-   * Note: If {@code description} is {@code null}, then it will be assigned as {@code ""}.
    *
    * @param alias        The {@linkplain #getAlias name} of the {@code Cvar}
    * @param description  A brief {@linkplain #getDescription description} explaining the purpose and
@@ -97,21 +96,23 @@ public class SimpleCvar<T> implements Cvar<T> {
    * @param defaultValue The {@linkplain #getDefaultValue default value} which will be assigned to
    *                     the {@code Cvar} now and whenever it is {@linkplain #reset}
    */
-  public SimpleCvar(@Nullable String alias, @Nullable String description,
+  public SimpleCvar(@NonNull String alias, @NonNull String description,
                     @NonNull Class<T> type, @Nullable T defaultValue) {
+    Preconditions.checkArgument(alias != null, "alias is not allowed to be null");
+    Preconditions.checkArgument(description != null, "description is not allowed to be null");
     Preconditions.checkArgument(type != null, "type is not allowed to be null");
 
     this.ALIAS = alias;
-    this.DESCRIPTION = Strings.nullToEmpty(description);
+    this.DESCRIPTION = description;
     this.DEFAULT_VALUE = defaultValue;
     this.TYPE = type;
-    this.STATE_LISTENERS = new CopyOnWriteArraySet<StateListener<T>>();
+    this.STATE_LISTENERS = new CopyOnWriteArraySet<>();
 
     this.value = DEFAULT_VALUE;
     this.isLoaded = false;
   }
 
-  @Nullable
+  @NonNull
   @Override
   public String getAlias() {
     return ALIAS;
@@ -178,10 +179,15 @@ public class SimpleCvar<T> implements Cvar<T> {
   }
 
   @Override
-  public void setValue(@NonNull String str, @NonNull SaveableCvarManager cvarManager) {
-    StringSerializer<T> serializer = cvarManager.getSerializer(TYPE);
-    T value = serializer.deserialize(str);
-    setValue(value);
+  @SuppressWarnings("unchecked")
+  public final void setValue(@NonNull String str, @NonNull StringSerializer serializer) {
+    try {
+      StringSerializer<T> castedSerializer = (StringSerializer<T>) serializer;
+      T value = castedSerializer.deserialize(str);
+      setValue(value);
+    } catch (Throwable t) {
+      throw new SerializeException(t);
+    }
   }
 
   /**

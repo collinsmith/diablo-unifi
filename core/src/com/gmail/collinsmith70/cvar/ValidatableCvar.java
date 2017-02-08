@@ -16,7 +16,8 @@ import com.gmail.collinsmith70.validator.Validator;
  * @param <T> The {@linkplain Class type} of the {@linkplain #getValue variable} which this
  *            {@code SimpleCvar} represents
  */
-public class ValidatableCvar<T> extends SimpleCvar<T> implements Validatable {
+@SuppressWarnings("ConstantConditions")
+public final class ValidatableCvar<T> extends SimpleCvar<T> implements Validatable {
 
   /**
    * {@code Validator} used to evaluate the validity of the values being
@@ -42,7 +43,7 @@ public class ValidatableCvar<T> extends SimpleCvar<T> implements Validatable {
    *
    * @see Validator#ACCEPT_NON_NULL
    */
-  public ValidatableCvar(@Nullable String alias, @Nullable String description,
+  public ValidatableCvar(@NonNull String alias, @NonNull String description,
                          @NonNull Class<T> type, @Nullable T defaultValue) {
     this(alias, description, type, defaultValue, Validator.ACCEPT_NON_NULL);
   }
@@ -60,7 +61,7 @@ public class ValidatableCvar<T> extends SimpleCvar<T> implements Validatable {
    * @param validator    The {@code Validator} to use when {@linkplain #isValid validating}
    *                     {@linkplain #setValue assignments}
    */
-  public ValidatableCvar(@Nullable String alias, @Nullable String description,
+  public ValidatableCvar(@NonNull String alias, @NonNull String description,
                          @NonNull Class<T> type, @Nullable T defaultValue,
                          @NonNull Validator validator) {
     super(alias, description, type, defaultValue);
@@ -79,12 +80,12 @@ public class ValidatableCvar<T> extends SimpleCvar<T> implements Validatable {
    *       required, then use {@link #reset} instead.
    *
    * @throws ValidationException if {@code value} is {@linkplain #isValid not valid} according to
-   *     the {@linkplain Validator} used by this {@code ValidatableCvar}.
+   *     the {@linkplain Validator validator} used by this {@code ValidatableCvar}.
    *
    * @see #reset
    */
   @Override
-  public void setValue(@Nullable final T value) {
+  public void setValue(@Nullable T value) {
     VALIDATOR.validate(value);
     super.setValue(value);
   }
@@ -98,14 +99,14 @@ public class ValidatableCvar<T> extends SimpleCvar<T> implements Validatable {
    *          that {@code obj} is {@linkplain Validatable#isValid valid}, otherwise {@code false}
    */
   @Override
-  public boolean isValid(@Nullable final Object obj) {
+  public boolean isValid(@Nullable Object obj) {
     return VALIDATOR.isValid(obj);
   }
 
   /**
    * {@inheritDoc}
    * <p>
-   * Note: This operation will not {@linkplain #isValid validate} the
+   * Note: This implementation will not {@linkplain #isValid validate} the
    *       {@link #getDefaultValue default value}.
    */
   @Override

@@ -1,5 +1,7 @@
 package com.gmail.collinsmith70.cvar;
 
+import com.google.common.base.Objects;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -9,7 +11,6 @@ import org.apache.commons.collections4.Trie;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * A <a href="https://en.wikipedia.org/wiki/Factory_method_pattern">factory</a> class for creating
@@ -22,6 +23,7 @@ import java.util.Collections;
  *   </li>
  * </ul>
  */
+@SuppressWarnings({ "unused", "SimplifiableIfStatement" })
 public class CvarManager implements Cvar.StateListener {
 
   /**
@@ -39,15 +41,14 @@ public class CvarManager implements Cvar.StateListener {
    * Constructs a new {@code CvarManager} instance.
    */
   public CvarManager() {
-    this.CVARS = new PatriciaTrie<Cvar>();
+    this.CVARS = new PatriciaTrie<>();
   }
 
   /**
    * Returns a {@code Collection} of all {@code Cvar} instances {@linkplain #isManaging managed} by
    * this {@code CvarManager}.
    *
-   * @return {@code Collection} of all {@code Cvar} instances {@linkplain #isManaging managed} by
-   *         this {@code CvarManager}
+   * @return {@code Collection} of all {@code Cvar} instances managed by this {@code CvarManager}
    */
   @NonNull
   public Collection<Cvar> getCvars() {
@@ -75,9 +76,9 @@ public class CvarManager implements Cvar.StateListener {
    * @see #remove
    */
   @NonNull
-  public <T> Cvar<T> create(@Nullable String alias, @Nullable String description,
+  public <T> Cvar<T> create(@NonNull String alias, @NonNull String description,
                             @NonNull Class<T> type, @Nullable T defaultValue) {
-    Cvar<T> cvar = new SimpleCvar<T>(alias, description, type, defaultValue);
+    Cvar<T> cvar = new SimpleCvar<>(alias, description, type, defaultValue);
     add(cvar);
     return cvar;
   }
@@ -106,11 +107,11 @@ public class CvarManager implements Cvar.StateListener {
    * @see #remove
    */
   @NonNull
-  public <T> ValidatableCvar<T> create(@Nullable String alias, @Nullable String description,
+  public <T> ValidatableCvar<T> create(@NonNull String alias, @NonNull String description,
                                        @NonNull Class<T> type, @Nullable T defaultValue,
                                        @NonNull Validator validator) {
     ValidatableCvar<T> cvar
-            = new ValidatableCvar<T>(alias, description, type, defaultValue, validator);
+            = new ValidatableCvar<>(alias, description, type, defaultValue, validator);
     add(cvar);
     return cvar;
   }
@@ -138,16 +139,18 @@ public class CvarManager implements Cvar.StateListener {
    * @see #create(String, String, Class, Object, Validator)
    * @see #remove(Cvar)
    */
+  @SuppressWarnings("unchecked")
   public <T> boolean add(@NonNull Cvar<T> cvar) {
-    if (isManaging(cvar)) {
+    final String alias = cvar.getAlias();
+    final Cvar<T> queriedCvar = (Cvar<T>) CVARS.get(alias);
+    if (Objects.equal(cvar, queriedCvar)) {
       return false;
-    } else if (containsAlias(cvar.getAlias())) {
+    } else if (queriedCvar != null) {
       throw new IllegalArgumentException(String.format(
-              "a cvar with the alias %s is already being managed by this CvarManager",
-              cvar.getAlias()));
+          "a cvar with the alias %s is already being managed by this CvarManager", alias));
     }
 
-    CVARS.put(getKey(cvar), cvar);
+    CVARS.put(alias, cvar);
     cvar.addStateListener(this);
     return true;
   }
@@ -166,17 +169,27 @@ public class CvarManager implements Cvar.StateListener {
    * @see #add
    */
   public boolean remove(@Nullable Cvar cvar) {
-    return isManaging(cvar) && CVARS.remove(getKey(cvar)) == null;
+    if (cvar == null) {
+      return false;
+    }
+
+    String alias = cvar.getAlias();
+    Cvar queriedCvar = CVARS.get(alias);
+    if (cvar.equals(queriedCvar)) {
+      return false;
+    }
+
+    return CVARS.remove(alias) != null;
   }
 
   /**
    * Searches for all {@link Cvar} the instances {@linkplain #isManaging managed} by this
    * {@code CvarManager} with {@linkplain Cvar#getAlias() aliases} containing the specified string
-   * (i.e., partial matches are valid and expected).
+   * (i.e., partial matches are valid and expected) in lexicographical order.
    * <p>
    * Note: This operation is performed case-insensitively.
    * <p>
-   * Note: If {@code alias} is {@code null}, then an empty {@link Collection} will be returned.
+   * Note: If {@code alias} is {@code null}, then all aliases are returned.
    * <p>
    * Note: If the exact alias is known, and only one result is expected, use {@link #get} instead.
    *
@@ -189,11 +202,7 @@ public class CvarManager implements Cvar.StateListener {
    */
   @NonNull
   public Collection<Cvar> search(@Nullable String alias) {
-    if (alias == null) {
-      return Collections.EMPTY_LIST;
-    }
-
-    return CVARS.prefixMap(getCaseInsensitiveKey(alias)).values();
+    return CVARS.prefixMap(alias).values();
   }
 
   /**
@@ -213,15 +222,19 @@ public class CvarManager implements Cvar.StateListener {
    * @return A {@code Cvar} with the specified alias, otherwise {@code null} if no {@code Cvar} with
    *         that alias is being managed by this {@link CvarManager}
    *
+   * @throws ClassCastException if the {@code Cvar} with the specified {@code alias} cannot be cast
+   *     to the given return type.
+   *
    * @see #search
    */
   @Nullable
+  @SuppressWarnings("unchecked")
   public <T> Cvar<T> get(@Nullable String alias) {
     if (alias == null) {
       return null;
     }
 
-    return (Cvar<T>) CVARS.get(getCaseInsensitiveKey(alias));
+    return (Cvar<T>) CVARS.get(alias);
   }
 
   /**
@@ -241,7 +254,7 @@ public class CvarManager implements Cvar.StateListener {
       return false;
     }
 
-    Cvar queriedCvar = CVARS.get(getKey(cvar));
+    Cvar queriedCvar = CVARS.get(cvar.getAlias());
     return cvar.equals(queriedCvar);
   }
 
@@ -262,31 +275,7 @@ public class CvarManager implements Cvar.StateListener {
    * @see #get
    */
   public boolean containsAlias(@Nullable String alias) {
-    return alias != null && CVARS.containsKey(getCaseInsensitiveKey(alias));
-  }
-
-  /**
-   * Returns the key associated with a specified {@link Cvar} {@code cvar}.
-   *
-   * @param cvar The {@code Cvar} to return a key for
-   *
-   * @return The key associated with {@code cvar}
-   */
-  @NonNull
-  private static String getKey(@NonNull Cvar cvar) {
-    return getCaseInsensitiveKey(cvar.getAlias());
-  }
-
-  /**
-   * Returns a case-insensitive transformation of the passed {@linkplain Cvar#getAlias() alias}.
-   *
-   * @param alias The alias to transform
-   *
-   * @return A mappable case-insensitive key
-   */
-  @NonNull
-  private static String getCaseInsensitiveKey(@NonNull String alias) {
-    return alias.toLowerCase();
+    return alias != null && CVARS.containsKey(alias);
   }
 
   @Override

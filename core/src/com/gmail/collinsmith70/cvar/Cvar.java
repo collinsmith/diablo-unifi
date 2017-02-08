@@ -3,6 +3,7 @@ package com.gmail.collinsmith70.cvar;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.serializer.StringSerializer;
 
 /**
@@ -15,6 +16,7 @@ import com.gmail.collinsmith70.serializer.StringSerializer;
  *
  * @see <a href="https://en.wikipedia.org/wiki/CVAR">Wikipedia article on CVARs</a>
  */
+@SuppressWarnings("unused")
 public interface Cvar<T> {
 
   /**
@@ -25,7 +27,7 @@ public interface Cvar<T> {
    *
    * @see <a href="https://en.wikipedia.org/wiki/Attribute%E2%80%93value_pair">Wikipedia article on key-value pairs</a>
    */
-  @Nullable
+  @NonNull
   String getAlias();
 
   /**
@@ -82,18 +84,24 @@ public interface Cvar<T> {
   void setValue(@Nullable T value);
 
   /**
-   * {@linkplain StringSerializer#deserialize Deserializes} the specified {@code str} using the
-   * passed {@linkplain SaveableCvarManager#getSerializer(Class) serializer} to deserialize, and
-   * then assigns the value to this {@code Cvar}.
+   * {@linkplain StringSerializer#deserialize Deserializes} the specified (@code string} using the
+   * passed {@code serializer}. This implementation is provided to assist with assigning
+   * {@code Cvar} instances string representations of their values, when type erasure has taken
+   * place, so it is expected that {@code serializer} can deserialize objects of type {@link T}.
    * <p>
-   * Note: This implementation will call {@link #setValue} to perform the assignment.
+   * Note: This implementation will call {@link #setValue} to perform the actual assignment.
    *
-   * @param str          Serialized value to assign
-   * @param cvarManager  {@code SaveableCvarManager} to use to deserialize {@code str}
+   * @param string     Serialized value to assign
+   * @param serializer {@code StringSerializer} to use to deserialize {@code string}
+   *
+   * @throws SerializeException if {@code serializer} cannot handle deserializing {@code string}
+   *     (e.g., ClassCastException), or if there was some other problem deserializing {@code
+   *     string}. For more details on the specific cause, see {@link SerializeException#getCause()}.
    *
    * @see #setValue
    */
-  void setValue(@NonNull String str, @NonNull SaveableCvarManager cvarManager);
+  @SuppressWarnings("unchecked")
+  void setValue(@NonNull String string, @NonNull StringSerializer<?> serializer);
 
   /**
    * Returns whether or not the {@linkplain #getValue value} of this {@code Cvar} is {@code null}.
