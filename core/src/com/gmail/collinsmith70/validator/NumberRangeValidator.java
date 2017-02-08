@@ -17,11 +17,13 @@ public class NumberRangeValidator<T extends Number & Comparable<? super T>>
   /**
    * Minimum value
    */
+  @NonNull
   private final T MIN;
 
   /**
    * Maximum value
    */
+  @NonNull
   private final T MAX;
 
   /**
@@ -37,11 +39,13 @@ public class NumberRangeValidator<T extends Number & Comparable<? super T>>
   }
 
   @Override
+  @NonNull
   public T getMin() {
     return MIN;
   }
 
   @Override
+  @NonNull
   public T getMax() {
     return MAX;
   }

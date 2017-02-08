@@ -1,5 +1,7 @@
 package com.gmail.collinsmith70.validator;
 
+import android.support.annotation.NonNull;
+
 /**
  * A {@link Validator} which is designed to validate that an object lies between some arbitrary
  * {@linkplain #getMin() minimum} and {@linkplain #getMax() maximum}
@@ -14,6 +16,7 @@ public interface RangeValidator<T extends Comparable<? super T>> extends Validat
    *
    * @return The minimum accepted value
    */
+  @NonNull
   T getMin();
 
   /**
@@ -21,6 +24,7 @@ public interface RangeValidator<T extends Comparable<? super T>> extends Validat
    *
    * @return The maximum accepted value
    */
+  @NonNull
   T getMax();
 
 }

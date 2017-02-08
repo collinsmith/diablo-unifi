@@ -14,11 +14,13 @@ public class RangeValidationException extends ValidationException {
   /**
    * The {@linkplain RangeValidator#getMin() minimum} acceptable value.
    */
+  @Nullable
   private final Object MIN;
 
   /**
    * The {@linkplain RangeValidator#getMax() maximum} acceptable value.
    */
+  @Nullable
   private final Object MAX;
 
   /**
@@ -51,6 +53,7 @@ public class RangeValidationException extends ValidationException {
    *
    * @return The minimum acceptable value
    */
+  @Nullable
   public Object getMin() {
     return MIN;
   }
@@ -60,6 +63,7 @@ public class RangeValidationException extends ValidationException {
    *
    * @return The maximum acceptable value
    */
+  @Nullable
   public Object getMax() {
     return MAX;
   }
