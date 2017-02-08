@@ -13,7 +13,7 @@ import java.io.PrintStream;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({ "WeakerAccess", "ConstantConditions", "unused", "UnusedReturnValue" })
 public class Console extends PrintStream implements InputProcessor {
 
   private static final String TAG = "Console";
