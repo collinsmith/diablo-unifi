@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@SuppressWarnings("unused")
 public class Cvars {
 
   public static List<Throwable> addTo(CvarManager cvarManager) {
