@@ -181,6 +181,11 @@ public class MappedKey implements Iterable<Integer> {
     this.STATE_LISTENERS = new CopyOnWriteArraySet<>();
   }
 
+  @Override
+  public String toString() {
+    return getAlias();
+  }
+
   /**
    * Validates that assignments is valid (i.e., {@code assignments.length >= 2} and assignments
    * indeces are unique. This is a relatively expensive operation, however with only 2-3 elements
@@ -205,9 +210,10 @@ public class MappedKey implements Iterable<Integer> {
         @Keycode int anotherKeycode = keycodes[j];
         if (anotherKeycode == NOT_MAPPED) {
           forceUnmapped = true;
-        } if (forceUnmapped || keycode == anotherKeycode) {
-          throw new IllegalArgumentException(
-              "keycodes cannot contain any duplicates or mappings after the last unmapped index");
+        } else if (forceUnmapped || keycode == anotherKeycode) {
+          throw new IllegalArgumentException("mapped keys cannot contain any duplicates or " +
+              "mappings after the last unmapped index. Key: "
+              + getName() + " [" + getAlias() + "]");
         }
       }
 

@@ -33,12 +33,8 @@ public abstract class SaveableKeyMapper extends KeyMapper {
   @Override
   public boolean add(@NonNull MappedKey key) {
     int[] loadedAssignments = load(key);
-    if (loadedAssignments.length == 0) {
-      return super.add(key);
-    }
-
     key.assign(loadedAssignments);
-    return true;
+    return super.add(key);
   }
 
   public abstract int[] load(MappedKey key);

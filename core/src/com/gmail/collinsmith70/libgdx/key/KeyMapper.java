@@ -76,7 +76,8 @@ public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterabl
 
   private boolean containsAnyAssignmentsOf(@NonNull MappedKey key) {
     for (int keycode : key) {
-      if (KEYS.containsKey(keycode)) {
+      ObjectSet<MappedKey> keys = KEYS.get(keycode);
+      if (keys != null && keys.contains(key)) {
         return true;
       }
     }

@@ -9,19 +9,34 @@ import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.utils.ObjectSet;
 import com.gmail.collinsmith70.libgdx.util.PropagatingInputProcessor;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.List;
 
-public class GdxKeyManager extends SaveableKeyMapper {
+public class GdxKeyMapper extends SaveableKeyMapper {
 
   private static final int[] EMPTY_ARRAY = new int[0];
 
-  private static final String TAG = "GdxKeyManager";
+  private static final String TAG = "GdxKeyMapper";
 
   private final Preferences PREFERENCES;
 
-  public GdxKeyManager() {
-    this.PREFERENCES = Gdx.app.getPreferences(GdxKeyManager.class.getName());
+  public GdxKeyMapper() {
+    this.PREFERENCES = Gdx.app.getPreferences(GdxKeyMapper.class.getName());
+  }
+
+  @Override
+  public boolean add(@NonNull MappedKey key) {
+    try {
+      return super.add(key);
+    } catch (IllegalArgumentException e) {
+      PREFERENCES.remove(key.getAlias());
+      Gdx.app.error(TAG, String.format(
+          "Invalid saved value for key: %s. Using default values instead: %s",
+          key, Arrays.toString(key.getAssignments())));
+    }
+
+    return false;
   }
 
   @Override
@@ -37,28 +52,22 @@ public class GdxKeyManager extends SaveableKeyMapper {
       return EMPTY_ARRAY;
     }
 
-    HashSet<Integer> assignments = new HashSet<>();
-    assignments.clear();
+    List<Integer> assignments = new ArrayList<>(2);
     serializedValue = serializedValue.substring(1, serializedValue.length() - 1);
     for (String serializedKeycode : serializedValue.split(", ")) {
       assignments.add(Integer.parseInt(serializedKeycode));
     }
 
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
-      String[] keycodeNames = new String[assignments.size()];
-      int i = 0;
-      for (int keycode : assignments) {
-        keycodeNames[i++] = Input.Keys.toString(keycode);
-      }
-
-      Gdx.app.debug(TAG, String.format("%s [%s] loaded as %s",
-          key.getName(), key.getAlias(), Arrays.toString(keycodeNames)));
+      String[] keycodeNames = getKeycodeNames(key);
+      Gdx.app.debug(TAG, String.format("%s [%s] loaded as %s (%s)",
+          key.getName(), key.getAlias(), Arrays.toString(keycodeNames), assignments));
     }
 
     int i = 0;
     int[] intAssignments = new int[assignments.size()];
     for (int assignment : assignments) {
-      intAssignments[i] = assignment;
+      intAssignments[i++] = assignment;
     }
 
     return intAssignments;
@@ -72,15 +81,26 @@ public class GdxKeyManager extends SaveableKeyMapper {
     PREFERENCES.putString(key.getAlias(), serializedValue);
 
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
-      String[] keycodeNames = new String[assignments.length];
-      int i = 0;
-      for (int keycode : assignments) {
-        keycodeNames[i++] = Input.Keys.toString(keycode);
-      }
-
+      String[] keycodeNames = getKeycodeNames(key);
       Gdx.app.debug(TAG, String.format("%s [%s] saved as %s",
           key.getName(), key.getAlias(), Arrays.toString(keycodeNames)));
     }
+  }
+
+  private String[] getKeycodeNames(@NonNull MappedKey key) {
+    int[] assignments = key.getAssignments();
+
+    int i = 0;
+    String[] keycodeNames = new String[assignments.length];
+    for (int keycode : assignments) {
+      if (keycode == MappedKey.NOT_MAPPED) {
+        keycodeNames[i++] = "null";
+      } else {
+        keycodeNames[i++] = Input.Keys.toString(keycode);
+      }
+    }
+
+    return keycodeNames;
   }
 
   @Override
