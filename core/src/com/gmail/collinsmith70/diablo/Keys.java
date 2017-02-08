@@ -1,34 +1,36 @@
 package com.gmail.collinsmith70.diablo;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.gmail.collinsmith70.libgdx.key.KeyMapper;
 import com.gmail.collinsmith70.libgdx.key.MappedKey;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Keys {
+class Keys {
 
-  public static <T> void addTo(KeyMapper keyManager) {
-    addTo(keyManager, Keys.class);
+  public static List<Throwable> addTo(KeyMapper keyManager) {
+    return addTo(keyManager, Keys.class, new ArrayList<Throwable>(0));
   }
 
-  @SuppressWarnings("unchecked")
-  private static <T> void addTo(KeyMapper keyManager, Class<?> clazz) {
+  private static List<Throwable> addTo(KeyMapper keyManager, Class<?> clazz,
+                                       List<Throwable> throwables) {
     for (Field field : clazz.getFields()) {
       if (MappedKey.class.isAssignableFrom(field.getType())) {
         try {
-          MappedKey key = (MappedKey) field.get(null);
-          keyManager.add(key);
-        } catch (IllegalAccessException e) {
-          Gdx.app.error("Keys", "Unable to access key: " + e.getMessage());
+          keyManager.add((MappedKey) field.get(null));
+        } catch (Throwable t) {
+          throwables.add(t);
         }
       }
     }
 
     for (Class<?> subclass : clazz.getClasses()) {
-      addTo(keyManager, subclass);
+      addTo(keyManager, subclass, throwables);
     }
+
+    return throwables;
   }
 
   private Keys() {

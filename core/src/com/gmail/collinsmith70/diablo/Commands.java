@@ -8,29 +8,34 @@ import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.command.CommandManager;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Commands {
+class Commands {
 
   private static final String TAG = "Commands";
 
-  public static void addTo(CommandManager commandManager) {
-    addTo(commandManager, Commands.class);
+  public static List<Throwable> addTo(CommandManager commandManager) {
+    return addTo(commandManager, Commands.class, new ArrayList<Throwable>(0));
   }
 
-  private static void addTo(CommandManager commandManager, Class<?> clazz) {
+  private static List<Throwable> addTo(CommandManager commandManager, Class<?> clazz,
+                                       List<Throwable> throwables) {
     for (Field field : clazz.getFields()) {
       if (Command.class.isAssignableFrom(field.getType())) {
         try {
           commandManager.add((Command) field.get(null));
-        } catch (IllegalAccessException e) {
-          Gdx.app.error(TAG, "Unable to access command: " + e.getMessage());
+        } catch (Throwable t) {
+          throwables.add(t);
         }
       }
     }
 
     for (Class<?> subclass : clazz.getClasses()) {
-      addTo(commandManager, subclass);
+      addTo(commandManager, subclass, throwables);
     }
+
+    return throwables;
   }
 
   private Commands() {
