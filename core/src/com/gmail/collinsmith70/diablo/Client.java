@@ -23,7 +23,8 @@ import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.CommandProcessor;
 import com.gmail.collinsmith70.libgdx.CvarProcessor;
 import com.gmail.collinsmith70.libgdx.GdxCvarManager;
-import com.gmail.collinsmith70.libgdx.GdxKeyManager;
+import com.gmail.collinsmith70.libgdx.key.GdxKeyManager;
+import com.gmail.collinsmith70.libgdx.key.MappedKey;
 import com.gmail.collinsmith70.libgdx.util.MutexedInputProcessor;
 
 import java.io.OutputStream;
@@ -129,7 +130,7 @@ public class Client extends ApplicationAdapter {
     Keys.addTo(keys);
     // TODO: Conditionally enable console on Android
     if (true) {
-      Keys.Console.assign(Input.Keys.MENU);
+      Keys.Console.assign(MappedKey.SECONDARY, Input.Keys.MENU);
     }
 
     console.addProcessor(new CommandProcessor(commands));

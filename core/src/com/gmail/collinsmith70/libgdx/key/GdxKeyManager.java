@@ -1,4 +1,4 @@
-package com.gmail.collinsmith70.libgdx;
+package com.gmail.collinsmith70.libgdx.key;
 
 import android.support.annotation.NonNull;
 
@@ -6,16 +6,15 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Preferences;
-import com.gmail.collinsmith70.old.Key;
-import com.gmail.collinsmith70.old.SaveableKeyManager;
+import com.badlogic.gdx.utils.ObjectSet;
 import com.gmail.collinsmith70.libgdx.util.PropagatingInputProcessor;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
-public class GdxKeyManager extends SaveableKeyManager {
+public class GdxKeyManager extends SaveableKeyMapper {
+
+  private static final int[] EMPTY_ARRAY = new int[0];
 
   private static final String TAG = "GdxKeyManager";
 
@@ -26,16 +25,16 @@ public class GdxKeyManager extends SaveableKeyManager {
   }
 
   @Override
-  public Set<Integer> load(@NonNull Key key) {
+  public int[] load(@NonNull MappedKey key) {
     String serializedValue = PREFERENCES.getString(key.getAlias());
     if (serializedValue == null) {
-      return Collections.emptySet();
+      return EMPTY_ARRAY;
     }
 
     if (!serializedValue.matches("\\[(\\d+,\\s)*\\d+\\]")) {
       Gdx.app.error(TAG, String.format("Error processing saved value for key %s [%s]: \"%s\"",
           key.getName(), key.getAlias(), serializedValue));
-      return Collections.emptySet();
+      return EMPTY_ARRAY;
     }
 
     HashSet<Integer> assignments = new HashSet<>();
@@ -56,14 +55,19 @@ public class GdxKeyManager extends SaveableKeyManager {
           key.getName(), key.getAlias(), Arrays.toString(keycodeNames)));
     }
 
-    return assignments;
+    int i = 0;
+    int[] intAssignments = new int[assignments.size()];
+    for (int assignment : assignments) {
+      intAssignments[i] = assignment;
+    }
+
+    return intAssignments;
   }
 
   @Override
-  public void save(@NonNull Key key) {
-    checkIfManaged(key);
-    Set<Integer> assignmentsSet = key.getAssignments();
-    Integer[] assignments = key.getAssignments().toArray(new Integer[assignmentsSet.size()]);
+  public void save(@NonNull MappedKey key) {
+    checkIfManaging(key);
+    int[] assignments = key.getAssignments();
     String serializedValue = Arrays.toString(assignments);
     PREFERENCES.putString(key.getAlias(), serializedValue);
 
@@ -80,15 +84,16 @@ public class GdxKeyManager extends SaveableKeyManager {
   }
 
   @Override
-  protected void commit(@NonNull Key key) {
-    checkIfManaged(key);
+  protected void commit(@NonNull MappedKey key) {
+    checkIfManaging(key);
     PREFERENCES.flush();
     Gdx.app.debug(TAG, "Committing changes...");
   }
 
   @Override
-  public void onAssigned(@NonNull Key key, int keycode) {
-    super.onAssigned(key, keycode);
+  public void onAssigned(@NonNull MappedKey key, @MappedKey.Assignment int assignment,
+                         @MappedKey.Keycode int keycode) {
+    super.onAssigned(key, assignment, keycode);
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
       Gdx.app.debug(TAG, String.format("assigned [%s] to [%s]",
           Input.Keys.toString(keycode), key.getAlias()));
@@ -96,8 +101,9 @@ public class GdxKeyManager extends SaveableKeyManager {
   }
 
   @Override
-  public void onUnassigned(@NonNull Key key, int keycode) {
-    super.onUnassigned(key, keycode);
+  public void onUnassigned(@NonNull MappedKey key, @MappedKey.Assignment int assignment,
+                           @MappedKey.Keycode int keycode) {
+    super.onUnassigned(key, assignment, keycode);
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
       Gdx.app.debug(TAG, String.format("unassigned [%s] from [%s]",
           Input.Keys.toString(keycode), key.getAlias()));
@@ -126,9 +132,11 @@ public class GdxKeyManager extends SaveableKeyManager {
 
     @Override
     public boolean keyDown(int keycode) {
-      Key key = get(keycode);
-      if (key != null) {
-        key.setPressed(keycode, true);
+      ObjectSet<MappedKey> keys = get(keycode);
+      if (keys != null) {
+        for (MappedKey key : keys) {
+          key.setPressed(keycode, true);
+        }
       }
 
       return super.keyDown(keycode);
@@ -136,9 +144,11 @@ public class GdxKeyManager extends SaveableKeyManager {
 
     @Override
     public boolean keyUp(int keycode) {
-      Key key = get(keycode);
-      if (key != null) {
-        key.setPressed(keycode, false);
+      ObjectSet<MappedKey> keys = get(keycode);
+      if (keys != null) {
+        for (MappedKey key : keys) {
+          key.setPressed(keycode, false);
+        }
       }
 
       return super.keyUp(keycode);
