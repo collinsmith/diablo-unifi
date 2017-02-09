@@ -230,6 +230,8 @@ public class SimpleCvar<T> implements Cvar<T> {
     final T value = this.value;
     if (value == null) {
       return "null";
+    } else if (value instanceof String) {
+      return "\"" + value.toString() + "\"";
     }
 
     return value.toString();
