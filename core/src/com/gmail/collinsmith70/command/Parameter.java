@@ -9,6 +9,7 @@ import com.gmail.collinsmith70.serializer.StringSerializer;
 import com.gmail.collinsmith70.serializer.StringStringSerializer;
 import com.gmail.collinsmith70.validator.Validator;
 
+@SuppressWarnings("unused")
 public class Parameter<T> implements StringSerializer<T>, Validator {
 
   @NonNull
@@ -25,7 +26,7 @@ public class Parameter<T> implements StringSerializer<T>, Validator {
   }
 
   @NonNull
-  public static Parameter<String> forStrings() {
+  public static Parameter<String> ofString() {
     return new Parameter<>(String.class, StringStringSerializer.INSTANCE, Validator.ACCEPT_ALL);
   }
 
@@ -51,6 +52,7 @@ public class Parameter<T> implements StringSerializer<T>, Validator {
   }
 
   @NonNull
+  @SuppressWarnings("SameReturnValue")
   public String resolve(@NonNull String arg) {
     return "";
   }

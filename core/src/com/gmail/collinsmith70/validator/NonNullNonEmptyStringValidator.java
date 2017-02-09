@@ -2,6 +2,7 @@ package com.gmail.collinsmith70.validator;
 
 import android.support.annotation.NonNull;
 
+@SuppressWarnings("unused")
 public class NonNullNonEmptyStringValidator extends NonNullValidator {
 
   @Override

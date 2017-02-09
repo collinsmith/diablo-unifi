@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
  * A {@link ValidationException} which is thrown when a {@link RangeValidator} invalidates that an
  * object is outside of the specified range.
  */
+@SuppressWarnings("unused")
 public class RangeValidationException extends ValidationException {
 
   /**

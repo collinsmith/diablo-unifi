@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
  * represent {@linkplain Validator validators} for structures where the value does not require
  * validation.
  */
+@SuppressWarnings("unused")
 public final class AcceptAllValidator extends SimpleValidator {
 
   /**

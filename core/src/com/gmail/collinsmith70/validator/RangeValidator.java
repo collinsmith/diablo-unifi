@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
  * @param <T> The type of object which this {@linkplain RangeValidator} is specifically designed to
  *            validate
  */
+@SuppressWarnings("unused")
 public interface RangeValidator<T extends Comparable<? super T>> extends Validator {
 
   /**

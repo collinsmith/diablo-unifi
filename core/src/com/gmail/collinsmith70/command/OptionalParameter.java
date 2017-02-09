@@ -6,6 +6,7 @@ import com.gmail.collinsmith70.serializer.StringSerializer;
 import com.gmail.collinsmith70.serializer.StringStringSerializer;
 import com.gmail.collinsmith70.validator.Validator;
 
+@SuppressWarnings("unused")
 public class OptionalParameter<T> extends Parameter<T> {
 
   @NonNull
@@ -22,7 +23,7 @@ public class OptionalParameter<T> extends Parameter<T> {
   }
 
   @NonNull
-  public static OptionalParameter<String> forStrings() {
+  public static OptionalParameter<String> ofString() {
     return new OptionalParameter<>(String.class, StringStringSerializer.INSTANCE, Validator.ACCEPT_ALL);
   }
 

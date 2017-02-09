@@ -34,6 +34,7 @@ import android.support.annotation.Nullable;
  * }
  * </pre>
  */
+@SuppressWarnings("unused")
 public interface Validatable {
 
   /**

@@ -3,7 +3,6 @@ package com.gmail.collinsmith70.validator;
 import com.google.common.base.Preconditions;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 /**
  * A {@link NonNullValidator} which validates that the passed value is both non-null and a subclass
@@ -12,6 +11,7 @@ import android.support.annotation.Nullable;
  * @param <T> The type of object which this {@linkplain NonNullSubclassValidator} is specifically
  *            designed to validate if objects are a subclass of
  */
+@SuppressWarnings("unused")
 public class NonNullSubclassValidator<T> extends NonNullValidator {
 
   /**
@@ -47,7 +47,7 @@ public class NonNullSubclassValidator<T> extends NonNullValidator {
    * @param obj {@inheritDoc}
    */
   @Override
-  public void validate(@Nullable Object obj) {
+  public void validate(@NonNull Object obj) {
     super.validate(obj);
     if (!TYPE.isAssignableFrom(obj.getClass())) {
       throw new ValidationException("passed reference is not a subclass of " + TYPE.getName());

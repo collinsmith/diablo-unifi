@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
  * similarly to {@link #isValid}, except it will throw {@link ValidationException} if the passed
  * object is not valid.
  */
+@SuppressWarnings("unused")
 public interface Validator extends Validatable {
 
   /**

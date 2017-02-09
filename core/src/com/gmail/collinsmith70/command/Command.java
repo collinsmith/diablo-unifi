@@ -8,21 +8,18 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.validator.ValidationException;
 import com.gmail.collinsmith70.validator.Validator;
 
 import org.apache.commons.collections4.iterators.ArrayIterator;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+@SuppressWarnings({ "ConstantConditions", "unused" })
 public class Command implements Validator {
-
-  @NonNull
-  private static final Map<Class, Validator> VALIDATORS = new HashMap<>();
 
   @NonNull
   private static final String[] EMPTY_ARGS = new String[0];
@@ -42,7 +39,7 @@ public class Command implements Validator {
   @NonNull
   private final Parameter[] PARAMS;
 
-  @Nullable
+  @NonNull
   private final Action ACTION;
 
   @IntRange(from = 0)
@@ -52,17 +49,22 @@ public class Command implements Validator {
   private final Set<AssignmentListener> ASSIGNMENT_LISTENERS;
 
   public Command(@NonNull String alias, @NonNull String description,
-                 @Nullable Action action, @Nullable Parameter... params) {
+                 @NonNull Action action, @Nullable Parameter... params) {
     Preconditions.checkArgument(!alias.isEmpty(), "alias cannot be empty");
     this.ALIAS = alias;
     this.DESCRIPTION = Preconditions.checkNotNull(description, "description cannot be null");
     this.ALIASES = new CopyOnWriteArraySet<>();
-    this.ACTION = MoreObjects.firstNonNull(action, Action.DO_NOTHING);
+    this.ACTION = Preconditions.checkNotNull(action, "action cannot be null");
     this.PARAMS = MoreObjects.firstNonNull(params, EMPTY_PARAMS);
     this.MINIMUM_ARGS = calculateMinimumArgs(PARAMS);
     this.ASSIGNMENT_LISTENERS = new CopyOnWriteArraySet<>();
 
     ALIASES.add(alias);
+  }
+
+  public Command(@NonNull String alias, @NonNull String description,
+                 @Nullable Parameter... params) {
+    this(alias, description, Action.DO_NOTHING, params);
   }
 
   private int calculateMinimumArgs(@NonNull Parameter[] params) {
@@ -270,6 +272,18 @@ public class Command implements Validator {
     @NonNull
     public String getArg(int i) {
       return ARGS[compressed ? i + 1 : i];
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T deserializeArg(int i) {
+      try {
+        String arg = getArg(i);
+        return (T) PARAMS[i].deserialize(arg);
+      } catch (SerializeException e) {
+        throw e;
+      } catch (Exception e) {
+        throw new SerializeException(e);
+      }
     }
 
     @IntRange(from = 0)

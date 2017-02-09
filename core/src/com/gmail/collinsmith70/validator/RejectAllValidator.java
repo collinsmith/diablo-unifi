@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
  * A {@link SimpleValidator} which rejects everything. This class is intended to be used to
  * represent {@linkplain Validator validators} for immutable structures.
  */
+@SuppressWarnings("unused")
 public final class RejectAllValidator extends SimpleValidator {
 
   /**
