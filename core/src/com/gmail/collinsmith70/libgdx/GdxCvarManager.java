@@ -39,7 +39,7 @@ public class GdxCvarManager extends SaveableCvarManager {
     PREFERENCES.putString(cvar.getAlias(), serializer.serialize(cvar.getValue()));
     PREFERENCES.flush();
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
-      Gdx.app.debug(TAG, String.format("%s saved as %s [%s]",
+      Gdx.app.debug(TAG, String.format("%s saved as \"%s\" [%s]",
           cvar.getAlias(), cvar.getValue(), cvar.getType().getName()));
     }
   }
@@ -60,7 +60,7 @@ public class GdxCvarManager extends SaveableCvarManager {
     }
 
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
-      Gdx.app.debug(TAG, String.format("%s loaded as %s [%s]",
+      Gdx.app.debug(TAG, String.format("%s loaded as \"%s\" [%s]",
           cvar.getAlias(), serializedValue, cvar.getType().getName()));
     }
 
