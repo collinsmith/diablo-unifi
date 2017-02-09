@@ -2,6 +2,7 @@ package com.gmail.collinsmith70.libgdx.key;
 
 import android.support.annotation.NonNull;
 
+@SuppressWarnings({ "unused", "WeakerAccess" })
 public abstract class MappedKeyStateAdapter implements MappedKey.StateListener {
 
   @Override
