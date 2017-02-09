@@ -18,6 +18,7 @@ import com.gmail.collinsmith70.serializer.LongStringSerializer;
 import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.serializer.ShortStringSerializer;
 import com.gmail.collinsmith70.serializer.StringSerializer;
+import com.gmail.collinsmith70.serializer.StringStringSerializer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,6 +57,7 @@ public abstract class SaveableCvarManager extends CvarManager {
       .put(Long.class, LongStringSerializer.INSTANCE)
       .put(Float.class, FloatStringSerializer.INSTANCE)
       .put(Double.class, DoubleStringSerializer.INSTANCE)
+      .put(String.class, StringStringSerializer.INSTANCE)
       .put(Locale.class, LocaleStringSerializer.INSTANCE)
       .build();
 
