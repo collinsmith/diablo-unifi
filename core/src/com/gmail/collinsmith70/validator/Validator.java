@@ -6,10 +6,8 @@ import android.support.annotation.Nullable;
  * An extension of {@link Validatable} with the addition of {@link #validate}, which behaves
  * similarly to {@link #isValid}, except it will throw {@link ValidationException} if the passed
  * object is not valid.
- *
- * @param <T> The type of value being validated
  */
-public interface Validator<T> extends Validatable {
+public interface Validator extends Validatable {
 
   /**
    * Constant reference to a {@code Validator} which accepts all values
