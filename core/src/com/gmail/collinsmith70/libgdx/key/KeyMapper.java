@@ -2,6 +2,8 @@ package com.gmail.collinsmith70.libgdx.key;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.PeekingIterator;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -10,13 +12,14 @@ import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.ObjectSet;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
 @SuppressWarnings({ "WeakerAccess", "unused", "ConstantConditions" })
 public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterable<MappedKey> {
 
-  private final IntMap<ObjectSet<MappedKey>> KEYS;
+  protected final IntMap<ObjectSet<MappedKey>> KEYS;
 
   public KeyMapper() {
     this.KEYS = new IntMap<>();
@@ -24,8 +27,10 @@ public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterabl
 
   @Override
   @NonNull
+  // TODO: This method is pretty memory intensive in order to avoid returning duplicates as it is
+  //       essentially caching every returned MappedKey and uses 3 iterators.
   public Iterator<MappedKey> iterator() {
-    return new Iterator<MappedKey>() {
+    final PeekingIterator<MappedKey> iterator = Iterators.peekingIterator(new Iterator<MappedKey>() {
       final IntMap.Values<ObjectSet<MappedKey>> entries = KEYS.values();
       ObjectSet.ObjectSetIterator<MappedKey> keys = null;
 
@@ -41,6 +46,27 @@ public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterabl
         }
 
         return keys.next();
+      }
+
+      @Deprecated
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException();
+      }
+    });
+    return new Iterator<MappedKey>() {
+      Set<MappedKey> alreadyReturned = new HashSet<>();
+
+      @Override
+      public boolean hasNext() {
+        return iterator.hasNext() && !alreadyReturned.contains(iterator.peek());
+      }
+
+      @Override
+      public MappedKey next() {
+        MappedKey next = iterator.next();
+        alreadyReturned.add(next);
+        return next;
       }
 
       @Deprecated
