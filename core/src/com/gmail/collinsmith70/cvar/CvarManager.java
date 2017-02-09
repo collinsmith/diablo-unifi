@@ -186,7 +186,7 @@ public class CvarManager implements Cvar.StateListener, Iterable<Cvar> {
 
     String alias = cvar.getAlias();
     Cvar queriedCvar = CVARS.get(alias);
-    if (cvar.equals(queriedCvar)) {
+    if (!cvar.equals(queriedCvar)) {
       return false;
     }
 
