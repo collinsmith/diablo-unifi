@@ -44,7 +44,7 @@ class Commands {
       new Action() {
         @Override
         public void onExecuted(@NonNull Command.Instance instance) {
-          for (Command cmd : Diablo.client.commands.getCommands()) {
+          for (Command cmd : Diablo.client.commands().getCommands()) {
             Diablo.client.console.println(cmd.getAlias() + " : " + cmd.getDescription());
           }
         }
