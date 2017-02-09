@@ -30,7 +30,7 @@ public class Command {
   private final String DESCRIPTION;
 
   @NonNull
-  private final Set<String> ALIASES;
+  /*package*/ final Set<String> ALIASES;
 
   @NonNull
   private final Parameter[] PARAMS;

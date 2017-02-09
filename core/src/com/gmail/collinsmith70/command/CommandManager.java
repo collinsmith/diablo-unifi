@@ -1,11 +1,10 @@
 package com.gmail.collinsmith70.command;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-
-import com.badlogic.gdx.Gdx;
 
 import org.apache.commons.collections4.Trie;
 import org.apache.commons.collections4.trie.PatriciaTrie;
@@ -14,9 +13,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.SortedMap;
 
-@SuppressWarnings({ "WeakerAccess", "unused", "SameReturnValue", "UnusedReturnValue" })
-public class CommandManager {
+@SuppressWarnings({ "ConstantConditions", "unused", "SameReturnValue", "UnusedReturnValue",
+    "WeakerAccess" })
+public class CommandManager implements Command.AssignmentListener {
 
+  @NonNull
   private final Trie<String, Command> COMMANDS;
 
   public CommandManager() {
@@ -24,7 +25,7 @@ public class CommandManager {
   }
 
   @NonNull
-  public Command create(@NonNull String alias, @Nullable String description,
+  public Command create(@NonNull String alias, @NonNull String description,
                         @Nullable Action action, @Nullable Parameter... params) {
     Command command = new Command(alias, description, action, params);
     add(command);
@@ -37,39 +38,46 @@ public class CommandManager {
   }
 
   public boolean add(@NonNull Command command) {
-    if (isManaging(command)) {
+    final Command queriedCommand = COMMANDS.get(command.getAlias());
+    if (Objects.equal(command, queriedCommand)) {
       return false;
-    } else {
-      for (String alias : command.getAliases()) {
-        if (isManaging(alias)) {
-          throw new DuplicateCommandException(command, String.format(
-              "A command with the alias %s is already registered. Command aliases must be unique!",
-              alias));
-        }
+    } else if (queriedCommand != null) {
+      throw new IllegalArgumentException(String.format(
+          "A command with the alias %s is already being managed by this CommandManager",
+          command.getAlias()));
+    }
+
+    for (String alias : command.ALIASES) {
+      if (COMMANDS.containsKey(alias)) {
+        throw new DuplicateCommandException(command, String.format(
+            "A command with the alias %s is already registered. Command aliases must be unique!",
+            alias));
       }
     }
 
-    command.addAssignmentListener(new Command.AssignmentListener() {
-      @Override
-      public void onAssigned(@NonNull Command command, @NonNull String alias) {
-        Gdx.app.debug("CommandManager", "assigning \"" + alias.toLowerCase() + "\" to " + command);
-        COMMANDS.put(alias.toLowerCase(), command);
-      }
+    return command.addAssignmentListener(this);
+  }
 
-      @Override
-      public void onUnassigned(@NonNull Command command, @NonNull String alias) {
-        unassign(command, alias);
-      }
-    });
+  @Override
+  public void onAssigned(@NonNull Command command, @NonNull String alias) {
+    COMMANDS.put(alias, command);
+  }
 
-    return true;
+  @Override
+  public void onUnassigned(@NonNull Command command, @NonNull String alias) {
+    unassign(alias);
+  }
+
+  private boolean unassign(@NonNull String alias) {
+    Preconditions.checkArgument(alias != null, "alias cannot be null");
+    return COMMANDS.remove(alias) != null;
   }
 
   private boolean unassign(@NonNull Command command, @NonNull String alias) {
-    alias = alias.toLowerCase();
-    Object curValue = COMMANDS.get(alias);
-    if (Objects.equal(curValue, command)) {
-      Gdx.app.debug("CommandManager", "unassigning " + alias + " from " + command);
+    Preconditions.checkArgument(command != null, "command cannot be null");
+    Preconditions.checkArgument(alias != null, "alias cannot be null");
+    Command queriedCommand = COMMANDS.get(alias);
+    if (Objects.equal(queriedCommand, command)) {
       COMMANDS.remove(alias);
     }
 
@@ -77,36 +85,30 @@ public class CommandManager {
   }
 
   public boolean remove(@Nullable Command command) {
-    if (!isManaging(command)) {
+    if (command == null) {
       return false;
     }
 
-    assert command != null;
-    for (String alias : command.getAliases()) {
-      unassign(command, alias);
+    boolean unassigned = false;
+    for (String alias : command.ALIASES) {
+      unassigned = unassigned || unassign(command, alias);
     }
 
-    return true;
+    return unassigned;
   }
 
   @Nullable
   public Command get(@Nullable String alias) {
-    if (alias == null) {
-      return null;
-    }
-
-    alias = alias.toLowerCase();
     return COMMANDS.get(alias);
   }
 
   @NonNull
   public SortedMap<String, Command> prefixMap(@NonNull String alias) {
-    alias = alias.toLowerCase();
     return COMMANDS.prefixMap(alias);
   }
 
   public boolean isManaging(@Nullable String alias) {
-    return alias != null && COMMANDS.containsKey(alias.toLowerCase());
+    return alias != null && COMMANDS.containsKey(alias);
   }
 
   public boolean isManaging(@Nullable Command command) {
@@ -114,7 +116,7 @@ public class CommandManager {
       return false;
     }
 
-    Command value = COMMANDS.get(command.getAlias().toLowerCase());
+    Command value = COMMANDS.get(command.getAlias());
     return command.equals(value);
   }
 
