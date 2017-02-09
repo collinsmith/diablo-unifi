@@ -6,6 +6,10 @@ import com.badlogic.gdx.Gdx;
 import com.gmail.collinsmith70.command.Action;
 import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.command.CommandManager;
+import com.gmail.collinsmith70.command.Parameter;
+import com.gmail.collinsmith70.cvar.Cvar;
+import com.gmail.collinsmith70.serializer.SerializeException;
+import com.gmail.collinsmith70.serializer.StringSerializer;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -76,5 +80,40 @@ class Commands {
           throw new UnsupportedOperationException();
         }
       });
+
+  public static final Command get = new Command("get", "Get the value of the specified cvar",
+      new Action() {
+        @Override
+        public void onExecuted(@NonNull Command.Instance instance) {
+          String alias = instance.getArg(0);
+          Cvar cvar = Diablo.client.cvars().get(alias);
+          if (cvar == null) {
+            throw new SerializeException("Failed to find cvar by alias: " + alias);
+          }
+
+          Diablo.client.console.println("%s = %s", cvar.getAlias(), cvar.getValue());
+        }
+      }, Parameter.of(Cvar.class));
+
+  public static final Command set = new Command("set", "Sets the value of the specified cvar",
+      new Action() {
+        @Override
+        public void onExecuted(@NonNull Command.Instance instance) {
+          String alias = instance.getArg(0);
+          String value = instance.getArg(1);
+          Cvar cvar = Diablo.client.cvars().get(alias);
+          if (cvar == null) {
+            throw new SerializeException("Failed to find cvar by alias: " + alias);
+          }
+
+          StringSerializer serializer = Diablo.client.cvars().getSerializer(cvar);
+          try {
+            cvar.setValue(value, serializer);
+          } catch (SerializeException e) {
+            Diablo.client.console.println("Invalid value specified: \"%s\", Expected type: %s",
+                value, cvar.getType().getName());
+          }
+        }
+      }, Parameter.of(Cvar.class), Parameter.of(String.class));
 
 }
