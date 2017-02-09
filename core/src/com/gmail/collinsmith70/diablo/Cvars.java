@@ -66,13 +66,6 @@ public class Cvars {
       private Console() {
       }
 
-      public static final Cvar<String> Prefix = new ValidatableCvar<>(
-          "Client.Console.Prefix",
-          "String which precedes console commands within the GUI",
-          String.class,
-          ">",
-          Validator.ACCEPT_NON_NULL_NON_EMPTY_STRING);
-
       public static final Cvar<String> Font = new ValidatableCvar<>(
           "Client.Console.Font",
           "Font for the in-game console output stream",
