@@ -163,8 +163,7 @@ public class CvarManager implements Cvar.StateListener, Iterable<Cvar> {
     }
 
     CVARS.put(alias, cvar);
-    cvar.addStateListener(this);
-    return true;
+    return cvar.addStateListener(this);
   }
 
   /**
