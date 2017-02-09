@@ -1,5 +1,7 @@
 package com.gmail.collinsmith70.command;
 
+import com.google.common.base.Objects;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -10,15 +12,15 @@ import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.SortedMap;
 
+@SuppressWarnings({ "WeakerAccess", "unused", "SameReturnValue", "UnusedReturnValue" })
 public class CommandManager {
 
   private final Trie<String, Command> COMMANDS;
 
   public CommandManager() {
-    this.COMMANDS = new PatriciaTrie<Command>();
+    this.COMMANDS = new PatriciaTrie<>();
   }
 
   @NonNull
@@ -34,7 +36,6 @@ public class CommandManager {
     return new HashSet<>(COMMANDS.values());
   }
 
-  @NonNull
   public boolean add(@NonNull Command command) {
     if (isManaging(command)) {
       return false;
@@ -67,7 +68,7 @@ public class CommandManager {
   private boolean unassign(@NonNull Command command, @NonNull String alias) {
     alias = alias.toLowerCase();
     Object curValue = COMMANDS.get(alias);
-    if (Objects.equals(curValue, command)) {
+    if (Objects.equal(curValue, command)) {
       Gdx.app.debug("CommandManager", "unassigning " + alias + " from " + command);
       COMMANDS.remove(alias);
     }
@@ -80,6 +81,7 @@ public class CommandManager {
       return false;
     }
 
+    assert command != null;
     for (String alias : command.getAliases()) {
       unassign(command, alias);
     }
@@ -89,6 +91,10 @@ public class CommandManager {
 
   @Nullable
   public Command get(@Nullable String alias) {
+    if (alias == null) {
+      return null;
+    }
+
     alias = alias.toLowerCase();
     return COMMANDS.get(alias);
   }
@@ -119,6 +125,7 @@ public class CommandManager {
     }
   }
 
+  @SuppressWarnings("unused")
   public static abstract class CommandManagerException extends RuntimeException {
 
     public final Command COMMAND;
@@ -146,6 +153,7 @@ public class CommandManager {
 
   }
 
+  @SuppressWarnings("unused")
   public static class DuplicateCommandException extends CommandManagerException {
 
     private DuplicateCommandException() {
@@ -166,6 +174,7 @@ public class CommandManager {
 
   }
 
+  @SuppressWarnings("unused")
   public static class UnmanagedCommandException extends CommandManagerException {
 
     private UnmanagedCommandException() {
