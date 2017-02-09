@@ -655,6 +655,7 @@ public class MappedKey implements Iterable<Integer> {
   /**
    * Interface used as a callback for key state change events.
    */
+  @SuppressWarnings("EmptyMethod")
   interface StateListener {
 
     /**

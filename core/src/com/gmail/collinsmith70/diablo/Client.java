@@ -1,7 +1,5 @@
 package com.gmail.collinsmith70.diablo;
 
-import com.google.common.base.Supplier;
-
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -23,18 +21,22 @@ import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.CommandProcessor;
 import com.gmail.collinsmith70.libgdx.CvarProcessor;
 import com.gmail.collinsmith70.libgdx.GdxCvarManager;
-import com.gmail.collinsmith70.libgdx.key.GdxKeyMapper;
+import com.gmail.collinsmith70.libgdx.GdxKeyMapper;
 import com.gmail.collinsmith70.libgdx.key.MappedKey;
-import com.gmail.collinsmith70.libgdx.util.MutexedInputProcessor;
+import com.gmail.collinsmith70.libgdx.util.PropagatingInputProcessor;
+import com.gmail.collinsmith70.serializer.SerializeException;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.Collection;
+import java.util.List;
 
 import static com.gmail.collinsmith70.diablo.Diablo.client;
 
+@SuppressWarnings({ "ConstantConditions", "unused", "WeakerAccess", "SameParameterValue" })
 public class Client extends ApplicationAdapter {
 
-  private static final String CLIENT_LOG_TAG = "Client";
+  private static final String TAG = "Client";
 
   public final RenderableConsole console;
   public final AssetManager assets;
@@ -42,8 +44,6 @@ public class Client extends ApplicationAdapter {
 
   private GdxCvarManager cvars;
   private GdxKeyMapper keys;
-
-  private com.badlogic.gdx.InputProcessor inputProcessor;
 
   private boolean forceWindowed;
   private boolean forceDrawFps;
@@ -60,6 +60,9 @@ public class Client extends ApplicationAdapter {
   }
 
   public Client(int width, int height) {
+    this.width = width;
+    this.height = height;
+
     FileHandleResolver fhResolver = new InternalFileHandleResolver();
     this.assets = new AssetManager(fhResolver);
     this.commands = new CommandManager();
@@ -125,10 +128,24 @@ public class Client extends ApplicationAdapter {
     this.cvars = new GdxCvarManager();
     this.keys = new GdxKeyMapper();
 
-    Commands.addTo(commands);
-    Cvars.addTo(cvars);
-    Keys.addTo(keys);
+    List<Throwable> throwables;
+    throwables = Commands.addTo(commands);
+    for (Throwable t : throwables) {
+      Gdx.app.error(TAG, t.getMessage(), t);
+    }
+
+    throwables = Cvars.addTo(cvars);
+    for (Throwable t : throwables) {
+      Gdx.app.error(TAG, t.getMessage(), t);
+    }
+
+    throwables = Keys.addTo(keys);
+    for (Throwable t : throwables) {
+      Gdx.app.error(TAG, t.getMessage(), t);
+    }
+
     // TODO: Conditionally enable console on Android
+    //noinspection ConstantIfStatement
     if (true) {
       Keys.Console.assign(MappedKey.SECONDARY, Input.Keys.MENU);
     }
@@ -140,7 +157,7 @@ public class Client extends ApplicationAdapter {
 
     Gdx.input.setCatchBackKey(true);
     Gdx.input.setCatchMenuKey(true);
-    Gdx.input.setInputProcessor(inputProcessor = newInputProcessor());
+    Gdx.input.setInputProcessor(newInputProcessor());
 
     this.batch = new SpriteBatch();
   }
@@ -173,8 +190,7 @@ public class Client extends ApplicationAdapter {
     }
 
     GlyphLayout fps = new GlyphLayout(font, Integer.toString(Gdx.graphics.getFramesPerSecond()));
-    float x = 0;
-    float y = 0;
+    float x, y;
     int drawFpsMethod = this.drawFpsMethod;
     if (forceDrawFps && drawFpsMethod == 0) {
       drawFpsMethod = 1;
@@ -206,26 +222,34 @@ public class Client extends ApplicationAdapter {
 
   @Override
   public void dispose() {
-    Gdx.app.debug(CLIENT_LOG_TAG, "Saving CVARS...");
-    cvars.saveAll();
+    Collection<SerializeException> exceptions;
 
-    Gdx.app.debug(CLIENT_LOG_TAG, "Saving key assignments...");
-    keys.saveAll();
+    Gdx.app.debug(TAG, "Saving CVARS...");
+    exceptions = cvars.saveAll();
+    for (SerializeException e : exceptions) {
+      console.println(e.getMessage());
+    }
 
-    Gdx.app.debug(CLIENT_LOG_TAG, "Disposing client...");
+    Gdx.app.debug(TAG, "Saving key assignments...");
+    exceptions = keys.saveAll();
+    for (SerializeException e : exceptions) {
+      console.println(e.getMessage());
+    }
+
+    Gdx.app.debug(TAG, "Disposing client...");
     console.dispose();
 
-    Gdx.app.debug(CLIENT_LOG_TAG, "Disposing assets...");
+    Gdx.app.debug(TAG, "Disposing assets...");
     assets.dispose();
 
     try {
-      Gdx.app.debug(CLIENT_LOG_TAG, "Resetting stdout...");
+      Gdx.app.debug(TAG, "Resetting stdout...");
       System.setOut(System.out);
-      Gdx.app.debug(CLIENT_LOG_TAG, "Resetting stderr...");
+      Gdx.app.debug(TAG, "Resetting stderr...");
       System.setErr(System.err);
-    } catch (SecurityException e) {
+    } catch (SecurityException ignored) {
     } finally {
-      Gdx.app.debug(CLIENT_LOG_TAG, "Flushing console...");
+      Gdx.app.debug(TAG, "Flushing console...");
       console.flush();
       console.close();
     }
@@ -236,7 +260,7 @@ public class Client extends ApplicationAdapter {
     Cvars.Client.Display.ShowFPS.addStateListener(new SimpleCvarStateAdapter<Byte>() {
       @Override
       public void onChanged(@NonNull Cvar<Byte> cvar, @Nullable Byte from, @Nullable Byte to) {
-        drawFpsMethod = to;
+        drawFpsMethod = to == null ? 0 : to;
       }
     });
   }
@@ -250,24 +274,14 @@ public class Client extends ApplicationAdapter {
     return new InputProcessor(inputProcessor);
   }
 
-  private class InputProcessor extends MutexedInputProcessor {
+  private class InputProcessor extends PropagatingInputProcessor {
 
     public InputProcessor() {
-      super(console, new Supplier<Boolean>() {
-        @Override
-        public Boolean get() {
-          return console.isVisible();
-        }
-      });
+      super();
     }
 
     public InputProcessor(@NonNull com.badlogic.gdx.InputProcessor inputProcessor) {
-      super(console, inputProcessor, new Supplier<Boolean>() {
-        @Override
-        public Boolean get() {
-          return console.isVisible();
-        }
-      });
+      super(inputProcessor);
     }
 
     @Override
@@ -275,9 +289,74 @@ public class Client extends ApplicationAdapter {
       if (Keys.Console.isAssigned(keycode)) {
         console.setVisible(!console.isVisible());
         return true;
+      } else if (console.isVisible()) {
+        return console.keyDown(keycode);
       }
 
       return super.keyDown(keycode);
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+      if (console.isVisible()) {
+        return console.keyUp(keycode);
+      }
+
+      return super.keyUp(keycode);
+    }
+
+    @Override
+    public boolean keyTyped(char ch) {
+      if (console.isVisible()) {
+        return console.keyTyped(ch);
+      }
+
+      return super.keyTyped(ch);
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+      if (console.isVisible()) {
+        return console.touchDown(screenX, screenY, pointer, button);
+      }
+
+      return super.touchDown(screenX, screenY, pointer, button);
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+      if (console.isVisible()) {
+        return console.touchUp(screenX, screenY, pointer, button);
+      }
+
+      return super.touchUp(screenX, screenY, pointer, button);
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+      if (console.isVisible()) {
+        return console.touchDragged(screenX, screenY, pointer);
+      }
+
+      return super.touchDragged(screenX, screenY, pointer);
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+      if (console.isVisible()) {
+        return console.mouseMoved(screenX, screenY);
+      }
+
+      return super.mouseMoved(screenX, screenY);
+    }
+
+    @Override
+    public boolean scrolled(int amount) {
+      if (console.isVisible()) {
+        return console.scrolled(amount);
+      }
+
+      return super.scrolled(amount);
     }
   }
 }
