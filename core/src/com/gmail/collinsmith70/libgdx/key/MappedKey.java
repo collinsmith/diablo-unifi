@@ -124,7 +124,7 @@ public class MappedKey implements Iterable<Integer> {
    */
   @NonNull
   @Keycode
-  private int[] assignments;
+  /*package*/ int[] assignments;
 
   /**
    * Counts the number of pressed inputs mapped in this {@code MappedKey}. This number is

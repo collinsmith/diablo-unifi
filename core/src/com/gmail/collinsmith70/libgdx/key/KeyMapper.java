@@ -1,13 +1,19 @@
 package com.gmail.collinsmith70.libgdx.key;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.ObjectSet;
 
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.Set;
 
+@SuppressWarnings({ "WeakerAccess", "unused", "ConstantConditions" })
 public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterable<MappedKey> {
 
   private final IntMap<ObjectSet<MappedKey>> KEYS;
@@ -17,9 +23,10 @@ public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterabl
   }
 
   @Override
+  @NonNull
   public Iterator<MappedKey> iterator() {
     return new Iterator<MappedKey>() {
-      IntMap.Values<ObjectSet<MappedKey>> entries = KEYS.values();
+      final IntMap.Values<ObjectSet<MappedKey>> entries = KEYS.values();
       ObjectSet.ObjectSetIterator<MappedKey> keys = null;
 
       @Override
@@ -45,29 +52,26 @@ public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterabl
   }
 
   public boolean add(@NonNull MappedKey key) {
-    if (isManaging(key)) {
-      return false;
-    }
-
-    key.addAssignmentListener(this);
-    return true;
+    return key.addAssignmentListener(this);
   }
 
   public boolean remove(@NonNull MappedKey key) {
-    if (!isManaging(key)) {
-      return false;
+    boolean removed = false;
+    for (int keycode : key.assignments) {
+      removed = removed || unassign(key, keycode);
     }
 
-    @MappedKey.Assignment int i = MappedKey.PRIMARY;
-    for (int keycode : key) {
-      unassign(key, i++, keycode);
-    }
-
-    return true;
+    return removed;
   }
 
-  public ObjectSet<MappedKey> get(@MappedKey.Keycode int keycode) {
-    return KEYS.get(keycode);
+  @NonNull
+  public Set<MappedKey> get(@MappedKey.Keycode int keycode) {
+    ObjectSet<MappedKey> keys = KEYS.get(keycode);
+    if (keys == null) {
+      return Collections.emptySet();
+    }
+
+    return ImmutableSet.copyOf(keys);
   }
 
   public boolean isManaging(@Nullable MappedKey key) {
@@ -75,7 +79,7 @@ public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterabl
   }
 
   private boolean containsAnyAssignmentsOf(@NonNull MappedKey key) {
-    for (int keycode : key) {
+    for (int keycode : key.assignments) {
       ObjectSet<MappedKey> keys = KEYS.get(keycode);
       if (keys != null && keys.contains(key)) {
         return true;
@@ -86,13 +90,12 @@ public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterabl
   }
 
   protected final void checkIfManaging(@Nullable MappedKey key) {
-    if (!isManaging(key)) {
-      throw new IllegalArgumentException("key is not managed by this key mapper");
-    }
+    Preconditions.checkArgument(!isManaging(key), "key is not managed by this key mapper");
   }
 
   private void assign(@NonNull MappedKey key, @MappedKey.Assignment int assignment,
                       @MappedKey.Keycode int keycode) {
+    Preconditions.checkArgument(key != null, "key cannot be null");
     ObjectSet<MappedKey> keys = KEYS.get(keycode);
     if (keys == null) {
       keys = new ObjectSet<>();
@@ -102,17 +105,19 @@ public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterabl
     keys.add(key);
   }
 
-  private void unassign(@NonNull MappedKey key, @MappedKey.Assignment int assignment,
-                        @MappedKey.Keycode int keycode) {
+  private boolean unassign(@NonNull MappedKey key, @MappedKey.Keycode int keycode) {
+    Preconditions.checkArgument(key != null, "key cannot be null");
     ObjectSet<MappedKey> keys = KEYS.get(keycode);
     if (keys == null) {
-      throw new IllegalStateException();
+      return false;
     }
 
-    keys.remove(key);
+    boolean removed = keys.remove(key);
     if (keys.size == 0) {
       KEYS.remove(keycode);
     }
+
+    return removed;
   }
 
   @Override
@@ -130,6 +135,6 @@ public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterabl
   @Override
   public void onUnassigned(@NonNull MappedKey key, @MappedKey.Assignment int assignment,
                            @MappedKey.Keycode int keycode) {
-    unassign(key, assignment, keycode);
+    unassign(key, keycode);
   }
 }
