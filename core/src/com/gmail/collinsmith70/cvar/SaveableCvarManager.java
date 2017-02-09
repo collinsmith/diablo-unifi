@@ -19,8 +19,8 @@ import com.gmail.collinsmith70.serializer.ShortStringSerializer;
 import com.gmail.collinsmith70.serializer.StringSerializer;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -235,14 +235,14 @@ public abstract class SaveableCvarManager extends CvarManager {
    * @see #save
    */
   @NonNull
-  public List<SerializeException> saveAll() {
-    List<SerializeException> exceptions = null;
+  public Collection<SerializeException> saveAll() {
+    Collection<SerializeException> exceptions = null;
     for (Cvar cvar : getCvars()) {
       try {
         save(cvar);
       } catch (SerializeException e) {
         if (exceptions == null) {
-          exceptions = new ArrayList<>();
+          exceptions = new ArrayList<>(1);
         }
 
         exceptions.add(e);
