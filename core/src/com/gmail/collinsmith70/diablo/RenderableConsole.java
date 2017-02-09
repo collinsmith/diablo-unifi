@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Timer;
-import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.Console;
@@ -22,17 +21,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-public class RenderableConsole extends Console implements Console.BufferListener, Disposable {
+public class RenderableConsole extends Console implements Disposable {
 
   private static final String TAG = "RenderableConsole";
 
+  private static final String BUFFER_PREFIX = ">";
+
   private final Client client;
 
-  private final List<String> OUTPUT = new ArrayList<String>();
+  private final List<String> OUTPUT = new ArrayList<>();
   private float outputOffset;
 
   private boolean visible;
-  private String bufferPrefix = ">";
 
   @Nullable
   private BitmapFont font;
@@ -43,11 +43,10 @@ public class RenderableConsole extends Console implements Console.BufferListener
 
   private static final float CARET_BLINK_DELAY = 0.5f;
   private static final float CARET_HOLD_DELAY = 1.0f;
-  private Timer caretTimer;
   private Timer.Task caretBlinkTask;
   private boolean showCaret;
 
-  public RenderableConsole(@NonNull Client client, @Nullable OutputStream out) {
+  public RenderableConsole(@NonNull Client client, @NonNull OutputStream out) {
     super(out);
     this.client = client;
     this.font = null;
@@ -104,7 +103,6 @@ public class RenderableConsole extends Console implements Console.BufferListener
       }
     });
 
-    caretTimer = new Timer();
     caretBlinkTask = new Timer.Task() {
       @Override
       public void run() {
@@ -114,12 +112,11 @@ public class RenderableConsole extends Console implements Console.BufferListener
 
     clearBuffer();
     updateCaret();
-    caretTimer.start();
   }
 
   private void updateCaret() {
     caretBlinkTask.cancel();
-    caretTimer.schedule(caretBlinkTask, CARET_HOLD_DELAY, CARET_BLINK_DELAY);
+    Timer.schedule(caretBlinkTask, CARET_HOLD_DELAY, CARET_BLINK_DELAY);
     this.showCaret = true;
   }
 
@@ -135,9 +132,9 @@ public class RenderableConsole extends Console implements Console.BufferListener
 
     final int height = client.height();
     String bufferContents = getBufferContents();
-    GlyphLayout glyphs = font.draw(b, bufferPrefix + " " + bufferContents, 0, height);
+    GlyphLayout glyphs = font.draw(b, BUFFER_PREFIX + " " + bufferContents, 0, height);
     if (showCaret) {
-      glyphs.setText(font, bufferPrefix + " " + bufferContents.substring(0, getCaretPosition()));
+      glyphs.setText(font, BUFFER_PREFIX + " " + bufferContents.substring(0, getCaretPosition()));
       b.draw(cursorTexture,
           glyphs.width, height - font.getCapHeight(),
           2, font.getCapHeight());
@@ -203,6 +200,10 @@ public class RenderableConsole extends Console implements Console.BufferListener
 
   @Override
   public boolean scrolled(int amount) {
+    if (font == null) {
+      return super.scrolled(amount);
+    }
+
     switch (amount) {
       case -1:
         outputOffset = Math.max(
@@ -222,28 +223,8 @@ public class RenderableConsole extends Console implements Console.BufferListener
   }
 
   @Override
-  public void println(String str) {
+  public void println(@NonNull String str) {
     super.println(str);
     OUTPUT.add(str);
   }
-
-  @Override
-  public void onCommit(@NonNull String buffer) {
-    if (!buffer.isEmpty()) {
-      boolean handled = false;
-      String[] args = buffer.split("\\s+");
-      Command command = client.commands.get(args[0]);
-      if (command != null) {
-        command.newInstance(args).execute();
-      } else if (!handled) {
-        println(String.format("Unrecognized command: \"%s\"", command));
-      }
-    }
-  }
-
-  @Override
-  public void onModified(@NonNull String buffer, int position) {}
-
-  @Override
-  public void onCaretMoved(int position) {}
 }
