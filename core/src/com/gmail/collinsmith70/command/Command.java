@@ -245,7 +245,7 @@ public class Command {
     @Override
     @NonNull
     public Iterator<String> iterator() {
-      return new ArrayIterator<>(ARGS);
+      return new ArrayIterator<>(ARGS, compressed ? 1 : 0);
     }
 
     public void execute() {
