@@ -7,9 +7,16 @@ import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.command.CommandManager;
 import com.gmail.collinsmith70.validator.ValidationException;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class CommandProcessor implements Console.Processor {
 
   private static final String TAG = "CommandProcessor";
+
+  private static final Pattern PATTERN = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 
   @NonNull
   private final CommandManager COMMANDS;
@@ -20,7 +27,7 @@ public class CommandProcessor implements Console.Processor {
 
   @Override
   public boolean process(@NonNull Console console, @NonNull String buffer) {
-    String[] args = buffer.split("\\s+");
+    String[] args = parseArgs(buffer);
     Command cmd = COMMANDS.get(args[0]);
     if (cmd == null) {
       return false;
@@ -38,6 +45,26 @@ public class CommandProcessor implements Console.Processor {
     }
 
     return true;
+  }
+
+  private String[] parseArgs(@NonNull String buffer) {
+    String tmp;
+    Collection<String> args = new ArrayList<>(8);
+    Matcher matcher = PATTERN.matcher(buffer);
+    while (matcher.find()) {
+      if ((tmp = matcher.group(1)) != null) {
+        // Add double-quoted string without the quotes
+        args.add(tmp);
+      } else if ((tmp = matcher.group(2)) != null) {
+        // Add single-quoted string without the quotes
+        args.add(tmp);
+      } else {
+        // Add unquoted word
+        args.add(matcher.group());
+      }
+    }
+
+    return args.toArray(new String[args.size()]);
   }
 
   @Override
