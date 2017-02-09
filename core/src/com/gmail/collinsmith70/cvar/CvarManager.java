@@ -11,6 +11,7 @@ import org.apache.commons.collections4.Trie;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * A <a href="https://en.wikipedia.org/wiki/Factory_method_pattern">factory</a> class for creating
@@ -24,7 +25,7 @@ import java.util.Collection;
  * </ul>
  */
 @SuppressWarnings({ "unused", "SimplifiableIfStatement" })
-public class CvarManager implements Cvar.StateListener {
+public class CvarManager implements Cvar.StateListener, Iterable<Cvar> {
 
   /**
    * A {@link Trie} mapping {@link Cvar} {@linkplain Cvar#getAlias() aliases} to themselves. This
@@ -53,6 +54,17 @@ public class CvarManager implements Cvar.StateListener {
   @NonNull
   public Collection<Cvar> getCvars() {
     return CVARS.values();
+  }
+
+  /**
+   * Returns an iterator over the {@link Cvar} instances managed by this {@code CvarManager}.
+   *
+   * @return An iterator over the {@link Cvar} instances managed by this {@code CvarManager}
+   */
+  @Override
+  @NonNull
+  public Iterator<Cvar> iterator() {
+    return getCvars().iterator();
   }
 
   /**
