@@ -49,8 +49,8 @@ public class GdxKeyMapper extends SaveableKeyMapper {
 
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
       String[] keycodeNames = getKeycodeNames(assignments);
-      Gdx.app.debug(TAG, String.format("%s [%s] loaded as %s (raw: %s)",
-          key.getName(), key.getAlias(), Arrays.toString(keycodeNames)));
+      Gdx.app.debug(TAG, String.format("%s [%s] loaded as %s (raw: \"%s\")",
+          key.getName(), key.getAlias(), Arrays.toString(keycodeNames), serializedValue));
     }
 
     return assignments;
