@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+@SuppressWarnings({ "ConstantConditions", "unused" })
 public class Command {
 
   private static final String[] EMPTY_ARGS = new String[0];
@@ -31,17 +32,21 @@ public class Command {
                  @Nullable Action action, @Nullable Parameter... params) {
     this.ALIAS = alias;
     this.DESCRIPTION = Strings.nullToEmpty(description);
-    this.ALIASES = new CopyOnWriteArraySet<String>();
+    this.ALIASES = new CopyOnWriteArraySet<>();
     this.ACTION = MoreObjects.firstNonNull(action, Action.DO_NOTHING);
     this.PARAMS = params;
     this.MINIMUM_ARGS = calculateMinimumArgs(params);
 
-    this.ASSIGNMENT_LISTENERS = new CopyOnWriteArraySet<AssignmentListener>();
+    this.ASSIGNMENT_LISTENERS = new CopyOnWriteArraySet<>();
 
     ALIASES.add(alias);
   }
 
-  private int calculateMinimumArgs(@NonNull Parameter[] params) {
+  private int calculateMinimumArgs(@Nullable Parameter[] params) {
+    if (params == null) {
+      return 0;
+    }
+
     int minimumParams = 0;
     for (Parameter param : params) {
       if (!(param instanceof OptionalParameter)) {
@@ -167,6 +172,7 @@ public class Command {
 
   }
 
+  @SuppressWarnings("unused")
   public class Instance implements Iterable<String> {
 
     private final boolean compressed;
@@ -214,10 +220,9 @@ public class Command {
 
     @Override
     public Iterator<String> iterator() {
-      return new ArrayIterator<String>(ARGS);
+      return new ArrayIterator<>(ARGS);
     }
 
-    @NonNull
     public void execute() {
       ACTION.onActionExecuted(this);
     }
