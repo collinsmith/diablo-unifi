@@ -400,7 +400,8 @@ public class MappedKey implements Iterable<Integer> {
       return previous;
     }
 
-    Preconditions.checkArgument(isAssigned(keycode), "duplicate keycodes are not allowed" );
+    Preconditions.checkArgument(!isAssigned(keycode),
+        "duplicate keycodes are not allowed. Keycode:" + keycode + " Key:" + this);
     assignments[assignment] = keycode;
     for (AssignmentListener l : ASSIGNMENT_LISTENERS) {
       if (previous != NOT_MAPPED) {
