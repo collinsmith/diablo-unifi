@@ -6,9 +6,9 @@ public interface Action {
 
   Action DO_NOTHING = new Action() {
     @Override
-    public void onActionExecuted(@NonNull Command.Instance instance) {}
+    public void onExecuted(@NonNull Command.Instance instance) {}
   };
 
-  void onActionExecuted(@NonNull Command.Instance instance);
+  void onExecuted(@NonNull Command.Instance instance);
 
 }

@@ -2,9 +2,9 @@ package com.gmail.collinsmith70.command;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -17,36 +17,48 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @SuppressWarnings({ "ConstantConditions", "unused" })
 public class Command {
 
+  @NonNull
   private static final String[] EMPTY_ARGS = new String[0];
 
+  @NonNull
+  private static final Parameter[] EMPTY_PARAMS = new Parameter[0];
+
+  @NonNull
   private final String ALIAS;
+
+  @NonNull
   private final String DESCRIPTION;
+
+  @NonNull
   private final Set<String> ALIASES;
+
+  @NonNull
   private final Parameter[] PARAMS;
+
+  @Nullable
   private final Action ACTION;
+
+  @IntRange(from = 0)
   private final int MINIMUM_ARGS;
 
+  @NonNull
   private final Set<AssignmentListener> ASSIGNMENT_LISTENERS;
 
-  public Command(@NonNull String alias, @Nullable String description,
+  public Command(@NonNull String alias, @NonNull String description,
                  @Nullable Action action, @Nullable Parameter... params) {
+    Preconditions.checkArgument(!alias.isEmpty(), "alias cannot be empty");
     this.ALIAS = alias;
-    this.DESCRIPTION = Strings.nullToEmpty(description);
+    this.DESCRIPTION = Preconditions.checkNotNull(description, "description cannot be null");
     this.ALIASES = new CopyOnWriteArraySet<>();
     this.ACTION = MoreObjects.firstNonNull(action, Action.DO_NOTHING);
-    this.PARAMS = params;
-    this.MINIMUM_ARGS = calculateMinimumArgs(params);
-
+    this.PARAMS = MoreObjects.firstNonNull(params, EMPTY_PARAMS);
+    this.MINIMUM_ARGS = calculateMinimumArgs(PARAMS);
     this.ASSIGNMENT_LISTENERS = new CopyOnWriteArraySet<>();
 
     ALIASES.add(alias);
   }
 
-  private int calculateMinimumArgs(@Nullable Parameter[] params) {
-    if (params == null) {
-      return 0;
-    }
-
+  private int calculateMinimumArgs(@NonNull Parameter[] params) {
     int minimumParams = 0;
     for (Parameter param : params) {
       if (!(param instanceof OptionalParameter)) {
@@ -72,24 +84,35 @@ public class Command {
     return ImmutableSet.copyOf(ALIASES);
   }
 
+  @IntRange(from = 0)
   public int minArgs() {
     return MINIMUM_ARGS;
   }
 
+  @NonNull
   private String getParametersHint() {
     StringBuilder sb = new StringBuilder();
     for (Parameter param : PARAMS) {
       if (param instanceof OptionalParameter) {
-        sb.append(String.format("[%s] ", param));
+        sb.append('[');
+        sb.append(param);
+        sb.append(']');
       } else {
-        sb.append(String.format("<%s> ", param));
+        sb.append(param);
       }
+
+      sb.append(' ');
     }
 
-    return sb.toString().trim();
+    if (sb.length() > 0) {
+      sb.deleteCharAt(sb.length() - 1);
+    }
+
+    return sb.toString();
   }
 
   @Override
+  @NonNull
   public String toString() {
     if (MINIMUM_ARGS == 0) {
       return ALIAS;
@@ -98,8 +121,9 @@ public class Command {
     return ALIAS + " " + getParametersHint();
   }
 
-  public Command assign(@NonNull String alias) {
-    Preconditions.checkArgument(!alias.isEmpty(), "alias cannot be null");
+  @NonNull
+  public Command addAlias(@NonNull String alias) {
+    Preconditions.checkArgument(!alias.isEmpty(), "alias cannot be empty");
     ALIASES.add(alias);
     for (AssignmentListener l : ASSIGNMENT_LISTENERS) {
       l.onAssigned(this, alias);
@@ -108,7 +132,7 @@ public class Command {
     return this;
   }
 
-  public boolean unassign(@Nullable String alias) {
+  public boolean removeAlias(@NonNull String alias) {
     if (alias == null) {
       return false;
     }
@@ -184,21 +208,20 @@ public class Command {
     private final String[] ARGS;
 
     private Instance(@NonNull String alias) {
-      Preconditions.checkArgument(!alias.isEmpty(), "Instance alias cannot be empty");
-      this.ALIAS = alias;
-      this.ARGS = EMPTY_ARGS;
-      this.compressed = false;
+      this(alias, EMPTY_ARGS);
     }
 
     private Instance(@NonNull String alias, @Nullable String... args) {
-      Preconditions.checkArgument(!alias.isEmpty(), "Instance alias cannot be empty");
+      Preconditions.checkArgument(!alias.isEmpty(), "alias cannot be empty");
       this.ALIAS = alias;
       this.ARGS = MoreObjects.firstNonNull(args, EMPTY_ARGS);
       this.compressed = false;
     }
 
     private Instance(@NonNull String[] args) {
-      Preconditions.checkArgument(args.length >= 1);
+      Preconditions.checkArgument(args.length >= 1,
+          "args should at least contain the alias of the command instance as index 0");
+      Preconditions.checkArgument(!args[0].isEmpty(), "alias cannot be empty");
       this.ALIAS = args[0];
       this.ARGS = args;
       this.compressed = true;
@@ -214,17 +237,19 @@ public class Command {
       return ARGS[compressed ? i + 1 : i];
     }
 
+    @IntRange(from = 0)
     public int numArgs() {
       return compressed ? ARGS.length - 1 : ARGS.length;
     }
 
     @Override
+    @NonNull
     public Iterator<String> iterator() {
       return new ArrayIterator<>(ARGS);
     }
 
     public void execute() {
-      ACTION.onActionExecuted(this);
+      ACTION.onExecuted(this);
     }
 
   }

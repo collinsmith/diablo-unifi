@@ -43,27 +43,27 @@ class Commands {
   public static final Command help = new Command("help", "Displays this message",
       new Action() {
         @Override
-        public void onActionExecuted(@NonNull Command.Instance instance) {
+        public void onExecuted(@NonNull Command.Instance instance) {
           for (Command cmd : Diablo.client.commands.getCommands()) {
             Diablo.client.console.println(cmd.getAlias() + " : " + cmd.getDescription());
           }
         }
       })
-      .assign("?");
+      .addAlias("?");
 
   public static final Command clear = new Command("clear", "Clears the console output",
       new Action() {
         @Override
-        public void onActionExecuted(@NonNull Command.Instance instance) {
+        public void onExecuted(@NonNull Command.Instance instance) {
           Diablo.client.console.clear();
         }
       })
-      .assign("cls");
+      .addAlias("cls");
 
   public static final Command exit = new Command("exit", "Exits the application",
       new Action() {
         @Override
-        public void onActionExecuted(@NonNull Command.Instance instance) {
+        public void onExecuted(@NonNull Command.Instance instance) {
           Gdx.app.exit();
         }
       });
@@ -71,7 +71,7 @@ class Commands {
   public static final Command assign = new Command("assign", "Assigns the specified key",
       new Action() {
         @Override
-        public void onActionExecuted(@NonNull Command.Instance instance) {
+        public void onExecuted(@NonNull Command.Instance instance) {
           throw new UnsupportedOperationException();
         }
       });
