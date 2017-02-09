@@ -1,5 +1,7 @@
 package com.gmail.collinsmith70.libgdx;
 
+import com.google.common.base.Preconditions;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -103,6 +105,19 @@ public class Console extends PrintStream implements InputProcessor {
   }
 
   /**
+   * Clears and sets the buffer to the specified {@code charSequence}.
+   *
+   * @param charSequence The {@code CharSequence} to write
+   */
+  public void setBuffer(@NonNull CharSequence charSequence) {
+    Preconditions.checkArgument(charSequence != null, "charSequence cannot be null");
+    BUFFER.setLength(0);
+    BUFFER.append(charSequence);
+    caret = BUFFER.length();
+    bufferModified();
+  }
+
+  /**
    * Commits the current buffer contents to the underlying PrintStream and clears the buffer.
    *
    * @return The contents of the buffer
@@ -110,10 +125,11 @@ public class Console extends PrintStream implements InputProcessor {
    * @see #getBufferContents
    */
   @NonNull
-  public String commitBuffer() {
+  public final String commitBuffer() {
     String bufferContents = BUFFER.toString();
     println(bufferContents);
     clearBuffer();
+    onCommit(bufferContents);
     for (BufferListener l : BUFFER_LISTENERS) {
       l.onCommit(bufferContents);
     }
@@ -134,6 +150,14 @@ public class Console extends PrintStream implements InputProcessor {
 
     return bufferContents;
   }
+
+  /**
+   * Called when the buffer is {@linkplain #commitBuffer committed}. Subclasses should override this
+   * method instead of implementing and adding themselves as listeners.
+   *
+   * @param buffer The contents of the buffer
+   */
+  protected void onCommit(@NonNull String buffer) {}
 
   /**
    * Returns the contents of the buffer.
@@ -169,19 +193,39 @@ public class Console extends PrintStream implements InputProcessor {
    */
   private void bufferModified() {
     String bufferContents = BUFFER.toString();
+    onModified(bufferContents, caret);
     for (BufferListener l : BUFFER_LISTENERS) {
       l.onModified(bufferContents, caret);
     }
+
+    caretMoved();
   }
+
+  /**
+   * Called when the buffer is {@linkplain #bufferModified modified}. Subclasses should override
+   * this method instead of implementing and adding themselves as listeners.
+   *
+   * @param buffer The contents of the buffer
+   */
+  protected void onModified(@NonNull String buffer, int position) {}
 
   /**
    * Called when the caret is moved. Propagates even to all BufferListener instances.
    */
   private void caretMoved() {
+    onCaretMoved(caret);
     for (BufferListener l : BUFFER_LISTENERS) {
       l.onCaretMoved(caret);
     }
   }
+
+  /**
+   * Called when the caret is {@linkplain #caretMoved moved}. Subclasses should override this
+   * method instead of implementing and adding themselves as listeners.
+   *
+   * @param position Position of the caret
+   */
+  protected void onCaretMoved(int position) {}
 
   /**
    * Handles the buffer I/O events and manages the caret position.

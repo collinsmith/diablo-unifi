@@ -46,11 +46,16 @@ public class RenderableConsole extends Console implements Disposable {
   private Timer.Task caretBlinkTask;
   private boolean showCaret;
 
+  private final List<String> HISTORY;
+  private ListIterator<String> historyIterator;
+
   public RenderableConsole(@NonNull Client client, @NonNull OutputStream out) {
     super(out);
     this.client = client;
     this.font = null;
     this.visible = false;
+
+    this.HISTORY = new ArrayList<>(64);
   }
 
   public boolean isVisible() {
@@ -93,6 +98,21 @@ public class RenderableConsole extends Console implements Disposable {
     highlightBackgroundTexture = new Texture(solidColorPixmap);
     solidColorPixmap.dispose();
 
+    final Cvar.StateListener<Float> colorChangeListener = new SimpleCvarStateAdapter<Float>() {
+      @Override
+      public void onChanged(@NonNull Cvar<Float> cvar, @Nullable Float from, @Nullable Float to) {
+        if (cvar.equals(Cvars.Client.Console.Color.a)) {
+          font.getColor().a = to;
+        } else if (cvar.equals(Cvars.Client.Console.Color.r)) {
+          font.getColor().r = to;
+        } else if (cvar.equals(Cvars.Client.Console.Color.g)) {
+          font.getColor().g = to;
+        } else if (cvar.equals(Cvars.Client.Console.Color.b)) {
+          font.getColor().b = to;
+        }
+      }
+    };
+
     Cvars.Client.Console.Font.addStateListener(new SimpleCvarStateAdapter<String>() {
       @Override
       public void onChanged(@NonNull Cvar<String> cvar, @Nullable String from,
@@ -100,6 +120,10 @@ public class RenderableConsole extends Console implements Disposable {
         client.assets.load(to, BitmapFont.class);
         client.assets.finishLoadingAsset(to);
         font = client.assets.get(to);
+        Cvars.Client.Console.Color.r.addStateListener(colorChangeListener);
+        Cvars.Client.Console.Color.g.addStateListener(colorChangeListener);
+        Cvars.Client.Console.Color.b.addStateListener(colorChangeListener);
+        Cvars.Client.Console.Color.a.addStateListener(colorChangeListener);
       }
     });
 
@@ -111,6 +135,11 @@ public class RenderableConsole extends Console implements Disposable {
     };
 
     clearBuffer();
+    updateCaret();
+  }
+
+  @Override
+  protected void onCaretMoved(int position) {
     updateCaret();
   }
 
@@ -169,6 +198,12 @@ public class RenderableConsole extends Console implements Disposable {
   }
 
   @Override
+  public void onCommit(@NonNull String buffer) {
+    HISTORY.add(buffer);
+    historyIterator = HISTORY.listIterator(HISTORY.size());
+  }
+
+  @Override
   public boolean keyDown(int keycode) {
     switch (keycode) {
       case Input.Keys.MENU:
@@ -177,8 +212,18 @@ public class RenderableConsole extends Console implements Disposable {
         setVisible(false);
         return true;
       case Input.Keys.UP:
+        if (historyIterator != null && historyIterator.hasPrevious()) {
+          setBuffer(historyIterator.previous());
+        }
+
         return true;
       case Input.Keys.DOWN:
+        if (historyIterator != null && historyIterator.hasNext()) {
+          setBuffer(historyIterator.next());
+        } else {
+          clearBuffer();
+        }
+
         return true;
       case Input.Keys.TAB:
         return true;
@@ -193,9 +238,7 @@ public class RenderableConsole extends Console implements Disposable {
       return true;
     }
 
-    boolean keyTyped = super.keyTyped(ch);
-    updateCaret();
-    return keyTyped;
+    return super.keyTyped(ch);
   }
 
   @Override
