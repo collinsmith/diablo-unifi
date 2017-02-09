@@ -8,14 +8,21 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.gmail.collinsmith70.validator.ValidationException;
+import com.gmail.collinsmith70.validator.Validator;
+
 import org.apache.commons.collections4.iterators.ArrayIterator;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-@SuppressWarnings({ "ConstantConditions", "unused" })
-public class Command {
+public class Command implements Validator {
+
+  @NonNull
+  private static final Map<Class, Validator> VALIDATORS = new HashMap<>();
 
   @NonNull
   private static final String[] EMPTY_ARGS = new String[0];
@@ -60,9 +67,15 @@ public class Command {
 
   private int calculateMinimumArgs(@NonNull Parameter[] params) {
     int minimumParams = 0;
+    boolean forceOptional = false;
     for (Parameter param : params) {
       if (!(param instanceof OptionalParameter)) {
         minimumParams++;
+      } else if (forceOptional) {
+        throw new IllegalArgumentException(
+            "no required parameters may appear after the first optional parameter");
+      } else {
+        forceOptional = true;
       }
     }
 
@@ -93,14 +106,7 @@ public class Command {
   private String getParametersHint() {
     StringBuilder sb = new StringBuilder();
     for (Parameter param : PARAMS) {
-      if (param instanceof OptionalParameter) {
-        sb.append('[');
-        sb.append(param);
-        sb.append(']');
-      } else {
-        sb.append(param);
-      }
-
+      sb.append(param);
       sb.append(' ');
     }
 
@@ -171,6 +177,35 @@ public class Command {
 
   public boolean removeAssignmentListener(@Nullable AssignmentListener l) {
     return l != null && ASSIGNMENT_LISTENERS.remove(l);
+  }
+
+  @Override
+  public boolean isValid(@Nullable Object obj) {
+    try {
+      validate(obj);
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
+  @Override
+  public void validate(@Nullable Object obj) {
+    if (obj == null) {
+      throw new ValidationException("obj cannot be null");
+    } else if (!(obj instanceof Instance)) {
+      throw new ValidationException("obj is not a subclass of Command.Instance");
+    }
+
+    Instance instance = (Instance) obj;
+    if (instance.numArgs() < MINIMUM_ARGS) {
+      throw new ValidationException("Bad syntax, expected: " + this);
+    }
+
+    int numArgs = Math.min(instance.numArgs(), MINIMUM_ARGS);
+    for (int i = 0; i < numArgs; i++) {
+      PARAMS[i].validate(instance.getArg(i));
+    }
   }
 
   @NonNull
@@ -249,6 +284,7 @@ public class Command {
     }
 
     public void execute() {
+      validate(this);
       ACTION.onExecuted(this);
     }
 

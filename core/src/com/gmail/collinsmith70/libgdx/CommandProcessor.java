@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import com.badlogic.gdx.Gdx;
 import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.command.CommandManager;
+import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.validator.ValidationException;
 
 import java.util.ArrayList;
@@ -35,13 +36,13 @@ public class CommandProcessor implements Console.Processor {
 
     try {
       cmd.newInstance(args).execute();
-    } catch (ValidationException e) {
+    } catch (SerializeException|ValidationException e) {
       String message = e.getMessage();
       if (message != null) {
         console.println(message);
       }
     } catch (Exception e) {
-      Gdx.app.error(TAG, e.getMessage(), e);
+      Gdx.app.error(TAG, e.getClass().getName() + ": " + e.getMessage(), e);
     }
 
     return true;
