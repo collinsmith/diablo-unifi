@@ -81,6 +81,20 @@ public class Console extends PrintStream implements InputProcessor {
   }
 
   /**
+   * Helper method to prevent as many annoying implementations of
+   * {@link String#format(String, Object...)}.
+   *
+   * @param format The format of the message
+   * @param args   The arguments to place into the {@code message}
+   *
+   * @see #println(String)
+   * @see String#format(String, Object...)
+   */
+  public void println(@NonNull String format, @Nullable Object... args) {
+    println(String.format(format, args));
+  }
+
+  /**
    * Empties the buffer contents.
    */
   public void clearBuffer() {
@@ -104,10 +118,17 @@ public class Console extends PrintStream implements InputProcessor {
       l.onCommit(bufferContents);
     }
 
+    boolean handled = false;
     for (Processor l : COMMIT_PROCESSORS) {
-      boolean handled = l.process(this, bufferContents);
+      handled = l.process(this, bufferContents);
       if (handled) {
         break;
+      }
+    }
+
+    if (!handled) {
+      for (Processor l : COMMIT_PROCESSORS) {
+        l.onUnprocessed(this, bufferContents);
       }
     }
 
@@ -367,6 +388,8 @@ public class Console extends PrintStream implements InputProcessor {
   public interface Processor {
 
     boolean process(@NonNull Console console, @NonNull String buffer);
+
+    void onUnprocessed(@NonNull Console console, @NonNull String buffer);
 
   }
 

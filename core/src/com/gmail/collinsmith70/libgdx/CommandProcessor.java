@@ -33,9 +33,12 @@ public class CommandProcessor implements Console.Processor {
         Gdx.app.error(TAG, message == null ? e.getClass().getName() : message, e);
       }
     } else {
-      console.println(String.format("Bad syntax, expected \"%s\"", cmd));
+      console.println("Bad syntax, expected \"%s\"", cmd);
     }
 
     return true;
   }
+
+  @Override
+  public void onUnprocessed(@NonNull Console console, @NonNull String buffer) {}
 }

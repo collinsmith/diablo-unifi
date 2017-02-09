@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.CommandProcessor;
+import com.gmail.collinsmith70.libgdx.Console;
 import com.gmail.collinsmith70.libgdx.CvarProcessor;
 import com.gmail.collinsmith70.libgdx.GdxCommandManager;
 import com.gmail.collinsmith70.libgdx.GdxCvarManager;
@@ -155,7 +156,16 @@ public class Client extends ApplicationAdapter {
       Keys.Console.assign(MappedKey.SECONDARY, Input.Keys.MENU);
     }
 
-    console.addProcessor(new CommandProcessor(commands));
+    console.addProcessor(new CommandProcessor(commands) {
+      @Override
+      public void onUnprocessed(@NonNull Console console, @NonNull String buffer) {
+        super.onUnprocessed(console, buffer);
+        console.println(
+            "Unrecognized command \"%s\". To see available commands, type \"%s\"",
+            buffer,
+            Commands.help.getAlias());
+      }
+    });
     console.addProcessor(new CvarProcessor(cvars));
 
     setupCvars();
