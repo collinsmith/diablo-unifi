@@ -37,9 +37,9 @@ public class GdxKeyMapper extends SaveableKeyMapper {
       return null;
     }
 
-    int[] ints;
+    int[] assignments;
     try {
-      ints = IntArrayStringSerializer.INSTANCE.deserialize(serializedValue);
+      assignments = IntArrayStringSerializer.INSTANCE.deserialize(serializedValue);
     } catch (SerializeException t) {
       Gdx.app.error(TAG, String.format("removing %s from preferences (invalid save format)",
           alias));
@@ -48,12 +48,12 @@ public class GdxKeyMapper extends SaveableKeyMapper {
     }
 
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
-      String[] keycodeNames = getKeycodeNames(key);
+      String[] keycodeNames = getKeycodeNames(assignments);
       Gdx.app.debug(TAG, String.format("%s [%s] loaded as %s (raw: %s)",
-          key.getName(), key.getAlias(), Arrays.toString(keycodeNames), Arrays.toString(ints)));
+          key.getName(), key.getAlias(), Arrays.toString(keycodeNames)));
     }
 
-    return ints;
+    return assignments;
   }
 
   @Override
@@ -68,19 +68,17 @@ public class GdxKeyMapper extends SaveableKeyMapper {
     PREFERENCES.putString(key.getAlias(), serializedValue);
     PREFERENCES.flush();
     if (Gdx.app.getLogLevel() >= Application.LOG_DEBUG) {
-      String[] keycodeNames = getKeycodeNames(key);
-      Gdx.app.debug(TAG, String.format("%s [%s] saved as %s",
-          key.getName(), key.getAlias(), Arrays.toString(keycodeNames)));
+      String[] keycodeNames = getKeycodeNames(assignments);
+      Gdx.app.debug(TAG, String.format("%s [%s] saved as %s (raw: \"%s\")",
+          key.getName(), key.getAlias(), Arrays.toString(keycodeNames), serializedValue));
     }
   }
 
   @NonNull
-  private String[] getKeycodeNames(@NonNull MappedKey key) {
-    int[] assignments = key.getAssignments();
-
+  private String[] getKeycodeNames(@NonNull int[] keycodes) {
     int i = 0;
-    String[] keycodeNames = new String[assignments.length];
-    for (int keycode : assignments) {
+    String[] keycodeNames = new String[keycodes.length];
+    for (int keycode : keycodes) {
       if (keycode == MappedKey.NOT_MAPPED) {
         keycodeNames[i++] = "null(0)";
       } else {
