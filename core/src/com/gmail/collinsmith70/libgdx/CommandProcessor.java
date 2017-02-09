@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import com.badlogic.gdx.Gdx;
 import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.command.CommandManager;
+import com.gmail.collinsmith70.validator.ValidationException;
 
 public class CommandProcessor implements Console.Processor {
 
@@ -25,15 +26,15 @@ public class CommandProcessor implements Console.Processor {
       return false;
     }
 
-    if (cmd.minArgs() <= args.length - 1) {
-      try {
-        cmd.newInstance(args).execute();
-      } catch (Exception e) {
-        String message = e.getMessage();
-        Gdx.app.error(TAG, message == null ? e.getClass().getName() : message, e);
+    try {
+      cmd.newInstance(args).execute();
+    } catch (ValidationException e) {
+      String message = e.getMessage();
+      if (message != null) {
+        console.println(message);
       }
-    } else {
-      console.println("Bad syntax, expected \"%s\"", cmd);
+    } catch (Exception e) {
+      Gdx.app.error(TAG, e.getMessage(), e);
     }
 
     return true;
