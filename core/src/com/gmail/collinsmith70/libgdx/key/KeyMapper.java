@@ -74,6 +74,17 @@ public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterabl
     return ImmutableSet.copyOf(keys);
   }
 
+  @Nullable
+  protected ObjectSet<MappedKey> lookup(@MappedKey.Keycode int keycode) {
+    return KEYS.get(keycode);
+  }
+
+  protected void setPressed(@NonNull MappedKey key, @MappedKey.Keycode int keycode,
+                            boolean pressed) {
+    assert isManaging(key);
+    key.setPressed(keycode, pressed);
+  }
+
   public boolean isManaging(@Nullable MappedKey key) {
     return key != null && containsAnyAssignmentsOf(key);
   }
