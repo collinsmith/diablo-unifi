@@ -15,11 +15,11 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.gmail.collinsmith70.command.CommandManager;
 import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.CommandProcessor;
 import com.gmail.collinsmith70.libgdx.CvarProcessor;
+import com.gmail.collinsmith70.libgdx.GdxCommandManager;
 import com.gmail.collinsmith70.libgdx.GdxCvarManager;
 import com.gmail.collinsmith70.libgdx.GdxKeyMapper;
 import com.gmail.collinsmith70.libgdx.key.MappedKey;
@@ -40,8 +40,8 @@ public class Client extends ApplicationAdapter {
 
   public final RenderableConsole console;
   public final AssetManager assets;
-  public final CommandManager commands;
 
+  private GdxCommandManager commands;
   private GdxCvarManager cvars;
   private GdxKeyMapper keys;
 
@@ -65,7 +65,6 @@ public class Client extends ApplicationAdapter {
 
     FileHandleResolver fhResolver = new InternalFileHandleResolver();
     this.assets = new AssetManager(fhResolver);
-    this.commands = new CommandManager();
 
     boolean usesStdOut = true;
     OutputStream consoleOut;
@@ -85,6 +84,11 @@ public class Client extends ApplicationAdapter {
     }
 
     client = this;
+  }
+
+  @Nullable
+  public GdxCommandManager commands() {
+    return commands;
   }
 
   @Nullable
@@ -125,6 +129,7 @@ public class Client extends ApplicationAdapter {
   public void create() {
     console.create();
 
+    this.commands = new GdxCommandManager();
     this.cvars = new GdxCvarManager();
     this.keys = new GdxKeyMapper();
 
