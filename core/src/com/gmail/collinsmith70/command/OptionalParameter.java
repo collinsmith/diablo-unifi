@@ -1,9 +1,9 @@
 package com.gmail.collinsmith70.command;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.gmail.collinsmith70.serializer.StringSerializer;
-import com.gmail.collinsmith70.serializer.StringStringSerializer;
 import com.gmail.collinsmith70.validator.Validator;
 
 @SuppressWarnings("unused")
@@ -23,11 +23,11 @@ public class OptionalParameter<T> extends Parameter<T> {
   }
 
   @NonNull
-  public static OptionalParameter<String> ofString() {
-    return new OptionalParameter<>(String.class, StringStringSerializer.INSTANCE, Validator.ACCEPT_ALL);
+  public static <T> OptionalParameter<T> of(@NonNull Class<T> type) {
+    return new OptionalParameter<>(type, null, Validator.ACCEPT_ALL);
   }
 
-  protected OptionalParameter(@NonNull Class<T> type, @NonNull StringSerializer<T> serializer,
+  protected OptionalParameter(@NonNull Class<T> type, @Nullable StringSerializer<T> serializer,
                               @NonNull Validator validator) {
     super(type, serializer, validator);
   }

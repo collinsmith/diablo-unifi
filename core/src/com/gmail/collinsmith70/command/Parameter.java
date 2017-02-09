@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.gmail.collinsmith70.serializer.StringSerializer;
-import com.gmail.collinsmith70.serializer.StringStringSerializer;
 import com.gmail.collinsmith70.validator.Validator;
 
 @SuppressWarnings("unused")
@@ -26,23 +25,23 @@ public class Parameter<T> implements StringSerializer<T>, Validator {
   }
 
   @NonNull
-  public static Parameter<String> ofString() {
-    return new Parameter<>(String.class, StringStringSerializer.INSTANCE, Validator.ACCEPT_ALL);
+  public static <T> Parameter<T> of(@NonNull Class<T> type) {
+    return new Parameter<>(type, null, Validator.ACCEPT_ALL);
   }
 
   @NonNull
   /*package*/ Class<T> TYPE;
 
-  @NonNull
+  @Nullable
   /*package*/ StringSerializer<T> SERIALIZER;
 
   @NonNull
   /*package*/ Validator VALIDATOR;
 
-  protected Parameter(@NonNull Class<T> type, @NonNull StringSerializer<T> serializer,
+  protected Parameter(@NonNull Class<T> type, @Nullable StringSerializer<T> serializer,
                       @NonNull Validator validator) {
     this.TYPE = Preconditions.checkNotNull(type, "type cannot be null");
-    this.SERIALIZER = Preconditions.checkNotNull(serializer, "serializer cannot be null");
+    this.SERIALIZER = serializer;
     this.VALIDATOR = Preconditions.checkNotNull(validator, "validator cannot be null");
   }
 
@@ -60,12 +59,20 @@ public class Parameter<T> implements StringSerializer<T>, Validator {
   @NonNull
   @Override
   public String serialize(@NonNull T obj) {
+    if (SERIALIZER == null) {
+      throw new UnsupportedOperationException("parameter is not serializable");
+    }
+
     return SERIALIZER.serialize(obj);
   }
 
   @NonNull
   @Override
   public T deserialize(@NonNull String string) {
+    if (SERIALIZER == null) {
+      throw new UnsupportedOperationException("parameter is not deserializable");
+    }
+
     return SERIALIZER.deserialize(string);
   }
 
@@ -82,5 +89,9 @@ public class Parameter<T> implements StringSerializer<T>, Validator {
   @Override
   public String toString() {
     return "<" + TYPE.getSimpleName() + ">";
+  }
+
+  public interface Autocompleteable {
+
   }
 }
