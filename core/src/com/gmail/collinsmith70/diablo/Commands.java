@@ -6,14 +6,12 @@ import com.badlogic.gdx.Gdx;
 import com.gmail.collinsmith70.command.Action;
 import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.command.CommandManager;
-import com.gmail.collinsmith70.command.OptionalParameter;
-import com.gmail.collinsmith70.command.Parameter;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({ "unused", "ConstantConditions" })
 class Commands {
 
   public static List<Throwable> addTo(CommandManager commandManager) {
@@ -41,16 +39,6 @@ class Commands {
 
   private Commands() {
   }
-
-  public static final Command echo = new Command("echo", "Echos the specified string",
-      new Action() {
-        @Override
-        public void onExecuted(@NonNull Command.Instance instance) {
-          for (String arg : instance) {
-            Diablo.client.console.println(arg);
-          }
-        }
-      }, Parameter.forStrings(), OptionalParameter.forStrings());
 
   public static final Command help = new Command("help", "Displays this message",
       new Action() {
