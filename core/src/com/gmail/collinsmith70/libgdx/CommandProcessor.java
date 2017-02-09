@@ -41,6 +41,8 @@ public class CommandProcessor implements Console.Processor {
       if (message != null) {
         console.println(message);
       }
+
+      //Gdx.app.error(TAG, e.getClass().getName() + ": " + e.getMessage(), e);
     } catch (Exception e) {
       Gdx.app.error(TAG, e.getClass().getName() + ": " + e.getMessage(), e);
     }
