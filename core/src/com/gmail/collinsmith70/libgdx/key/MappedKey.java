@@ -19,6 +19,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.badlogic.gdx.Input.Keys.*;
 
+@SuppressWarnings({ "ConstantConditions", "unused", "UnusedReturnValue" })
 public class MappedKey implements Iterable<Integer> {
 
   /**
@@ -60,7 +61,7 @@ public class MappedKey implements Iterable<Integer> {
    * identifier different from the letter {@code K}. A value annotated with {@code @Keycode} will be
    * equal to one of the below values, which are inherited from {@link Input.Keys}.
    */
-  @IntDef({ NUM_0, NUM_1, NUM_2, NUM_3, NUM_4, NUM_5, NUM_6, NUM_7, NUM_8, NUM_9, A,
+  @IntDef({ NOT_MAPPED, NUM_0, NUM_1, NUM_2, NUM_3, NUM_4, NUM_5, NUM_6, NUM_7, NUM_8, NUM_9, A,
       ALT_LEFT, ALT_RIGHT, APOSTROPHE, AT, B, BACK, BACKSLASH, C, CALL, CAMERA, CLEAR, COMMA, D,
       /*DEL,*/ BACKSPACE, FORWARD_DEL, DPAD_CENTER, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT, DPAD_UP,
       /*CENTER, DOWN, LEFT, RIGHT, UP,*/ E, ENDCALL, ENTER, ENVELOPE, EQUALS, EXPLORER, F, FOCUS, G,
@@ -68,7 +69,7 @@ public class MappedKey implements Iterable<Integer> {
       MEDIA_PLAY_PAUSE, MEDIA_PREVIOUS, MEDIA_REWIND, MEDIA_STOP, MENU, MINUS, MUTE, N,
       NOTIFICATION, NUM, O, P, PERIOD, PLUS, POUND, POWER, Q, R, RIGHT_BRACKET, S, SEARCH,
       SEMICOLON, SHIFT_LEFT, SHIFT_RIGHT, SLASH, SOFT_LEFT, SOFT_RIGHT, SPACE, STAR, SYM, T, TAB, U,
-      UNKNOWN, V, VOLUME_DOWN, VOLUME_UP, W, X, Y, Z, /*META_ALT_LEFT_ON, META_ALT_ON,
+      /*UNKNOWN,*/ V, VOLUME_DOWN, VOLUME_UP, W, X, Y, Z, /*META_ALT_LEFT_ON, META_ALT_ON,
       META_ALT_RIGHT_ON, META_SHIFT_LEFT_ON, META_SHIFT_ON,*/ META_SHIFT_RIGHT_ON, /*META_SYM_ON,*/
       CONTROL_LEFT, CONTROL_RIGHT, ESCAPE, END, INSERT, PAGE_UP, PAGE_DOWN, PICTSYMBOLS,
       SWITCH_CHARSET, /*BUTTON_CIRCLE,*/ BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_X, BUTTON_Y, BUTTON_Z,
@@ -182,6 +183,7 @@ public class MappedKey implements Iterable<Integer> {
   }
 
   @Override
+  @NonNull
   public String toString() {
     return getAlias();
   }
@@ -197,6 +199,7 @@ public class MappedKey implements Iterable<Integer> {
    *
    * @throws IllegalArgumentException if {@code assignments} is invalid
    */
+  @NonNull
   private int[] validateAssignments(@NonNull @Size(min = 2) int[] keycodes) {
     Preconditions.checkArgument(keycodes.length >= 2, "keycodes.length must be >= 2");
     boolean forceUnmapped = false;
@@ -300,7 +303,8 @@ public class MappedKey implements Iterable<Integer> {
 
   /**
    * Returns an iterator over the {@linkplain #getAssignments assignments} of this {@code
-   * MappedKey}.
+   * MappedKey}. This implementation is optimized for speed with minimal validation checks, so use
+   * with caution or within a for-each loop only, e.g., ({@code for (int keycode : key)}).
    * <p>
    * Note: Kep mappings are returned in order of {@linkplain #PRIMARY primary},
    *       {@linkplain #SECONDARY secondary}, etc. No valid key mappings may appear after an
@@ -309,6 +313,7 @@ public class MappedKey implements Iterable<Integer> {
    * @return An iterator over the kep mappings of this {@code MappedKey}
    */
   @Override
+  @NonNull
   public Iterator<Integer> iterator() {
     return new Iterator<Integer>() {
       private int nextIndex = 0;
@@ -319,6 +324,7 @@ public class MappedKey implements Iterable<Integer> {
       }
 
       @Override
+      @NonNull
       public Integer next() {
         return assignments[nextIndex++];
       }
@@ -390,14 +396,11 @@ public class MappedKey implements Iterable<Integer> {
     Preconditions.checkArgument(keycode != NOT_MAPPED,
         "cannot unmap using this method, use unassign(int) instead");
     @Keycode int previous = assignments[assignment];
-    if (previous != keycode) {
+    if (previous == keycode) {
       return previous;
     }
 
-    if (isAssigned(keycode)) {
-      throw new IllegalArgumentException("duplicate keycodes are not allowed");
-    }
-
+    Preconditions.checkArgument(isAssigned(keycode), "duplicate keycodes are not allowed" );
     assignments[assignment] = keycode;
     for (AssignmentListener l : ASSIGNMENT_LISTENERS) {
       if (previous != NOT_MAPPED) {
