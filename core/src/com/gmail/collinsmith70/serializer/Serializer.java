@@ -11,7 +11,7 @@ import android.support.annotation.Nullable;
  * @param <T1> The class which this {@code Serializer} accepts
  * @param <T2> The class this {@code Serializer} (de)serializes {@link T1} into.
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({ "WeakerAccess", "unused" })
 public interface Serializer<T1, T2> {
 
   /**
