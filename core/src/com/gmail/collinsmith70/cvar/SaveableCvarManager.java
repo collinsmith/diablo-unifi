@@ -1,6 +1,7 @@
 package com.gmail.collinsmith70.cvar;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 
 import android.support.annotation.NonNull;
@@ -159,7 +160,8 @@ public abstract class SaveableCvarManager extends CvarManager {
       T value = load(cvar);
       cvar.setValue(value);
     } catch (Throwable t) {
-      throw t;
+      Throwables.propagateIfPossible(t, SerializeException.class);
+      throw new SerializeException(t);
     } finally {
       return super.add(cvar);
     }
