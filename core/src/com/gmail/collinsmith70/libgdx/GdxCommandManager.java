@@ -8,6 +8,8 @@ import com.gmail.collinsmith70.command.CommandManager;
 
 public class GdxCommandManager extends CommandManager {
 
+  private static final String TAG = "GdxCommandManager";
+
   public GdxCommandManager() {
     super();
   }
@@ -15,12 +17,12 @@ public class GdxCommandManager extends CommandManager {
   @Override
   public void onAssigned(@NonNull Command command, @NonNull String alias) {
     super.onAssigned(command, alias);
-    Gdx.app.debug("CommandManager", "assigning \"" + alias.toLowerCase() + "\" to " + command);
+    Gdx.app.debug(TAG, "assigning \"" + alias.toLowerCase() + "\" to " + command);
   }
 
   @Override
   public void onUnassigned(@NonNull Command command, @NonNull String alias) {
     super.onUnassigned(command, alias);
-    Gdx.app.debug("CommandManager", "unassigning " + alias + " from " + command);
+    Gdx.app.debug(TAG, "unassigning " + alias + " from " + command);
   }
 }
