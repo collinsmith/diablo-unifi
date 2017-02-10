@@ -7,6 +7,7 @@ import com.gmail.collinsmith70.command.Action;
 import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.command.CommandManager;
 import com.gmail.collinsmith70.command.Parameter;
+import com.gmail.collinsmith70.command.ParameterException;
 import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.libgdx.CvarProcessor;
 import com.gmail.collinsmith70.serializer.SerializeException;
@@ -76,14 +77,6 @@ class Commands {
         }
       });
 
-  public static final Command assign = new Command("assign", "Assigns the specified key",
-      new Action() {
-        @Override
-        public void onExecuted(@NonNull Command.Instance instance) {
-          throw new UnsupportedOperationException();
-        }
-      });
-
   public static final Command cvars = new Command("cvars", "Prints all cvars and values",
       new Action() {
         @Override
@@ -103,13 +96,13 @@ class Commands {
           String alias = instance.getArg(0);
           Cvar cvar = Diablo.client.cvars().get(alias);
           if (cvar == null) {
-            throw new SerializeException("Failed to find cvar by alias: " + alias +
+            throw new ParameterException("Failed to find cvar by alias: " + alias +
                 ". For a list of cvars type \"" + cvars.getAlias() + "\"");
           }
 
           Diablo.client.console.println("%s = %s", cvar.getAlias(), cvar.getValue());
         }
-      }, Parameter.of(Cvar.class).setProcessor(CvarProcessor.INSTANCE));
+      }, Parameter.of(Cvar.class).processor(CvarProcessor.INSTANCE));
 
   public static final Command set = new Command("set", "Sets the value of the specified cvar",
       new Action() {
@@ -119,7 +112,7 @@ class Commands {
           String value = instance.getArg(1);
           Cvar cvar = Diablo.client.cvars().get(alias);
           if (cvar == null) {
-            throw new SerializeException("Failed to find cvar by alias: " + alias);
+            throw new ParameterException("Failed to find cvar by alias: " + alias);
           }
 
           StringSerializer serializer = Diablo.client.cvars().getSerializer(cvar);
@@ -133,6 +126,6 @@ class Commands {
                 value, e.getMessage());
           }
         }
-      }, Parameter.of(Cvar.class).setProcessor(CvarProcessor.INSTANCE), Parameter.of(String.class));
+      }, Parameter.of(Cvar.class).processor(CvarProcessor.INSTANCE), Parameter.of(String.class));
 
 }

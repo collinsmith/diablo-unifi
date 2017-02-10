@@ -105,6 +105,11 @@ public class Command implements Validator {
   }
 
   @IntRange(from = 0)
+  public int numArgs() {
+    return PARAMS.length;
+  }
+
+  @IntRange(from = 0)
   public int minArgs() {
     return MINIMUM_ARGS;
   }
@@ -209,9 +214,12 @@ public class Command implements Validator {
       throw new ValidationException("Bad syntax, expected: " + this);
     }
 
-    int numArgs = Math.min(instance.numArgs(), MINIMUM_ARGS);
+    int numArgs = Math.min(instance.numArgs(), PARAMS.length);
     for (int i = 0; i < numArgs; i++) {
-      PARAMS[i].validate(instance.getArg(i));
+      Parameter param = PARAMS[i];
+      if (param.canValidate()) {
+        param.validate(instance.getArg(i));
+      }
     }
   }
 

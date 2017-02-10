@@ -3,40 +3,36 @@ package com.gmail.collinsmith70.command;
 import com.google.common.base.Preconditions;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.gmail.collinsmith70.libgdx.Console;
 import com.gmail.collinsmith70.serializer.StringSerializer;
 import com.gmail.collinsmith70.validator.Validator;
 
-@SuppressWarnings("unused")
 public class OptionalParameter<T> extends Parameter<T> {
 
   @NonNull
-  public static <T> OptionalParameter<T> of(@NonNull Class<T> type,
-                                            @NonNull StringSerializer<T> serializer,
-                                            @NonNull Validator validator) {
-    return new OptionalParameter<>(type, serializer, validator);
-  }
-
-  @NonNull
-  public static <T> OptionalParameter<T> of(@NonNull Class<T> type,
-                                            @NonNull StringSerializer<T> serializer) {
-    return new OptionalParameter<>(type, serializer, Validator.ACCEPT_ALL);
-  }
-
-  @NonNull
   public static <T> OptionalParameter<T> of(@NonNull Class<T> type) {
-    return new OptionalParameter<>(type, null, Validator.ACCEPT_ALL);
+    return new OptionalParameter<>(type);
   }
 
-  protected OptionalParameter(@NonNull Class<T> type, @Nullable StringSerializer<T> serializer,
-                              @NonNull Validator validator) {
-    super(type, serializer, validator);
+  OptionalParameter(@NonNull Class<T> type) {
+    super(type);
   }
 
   @NonNull
-  public OptionalParameter<T> setProcessor(@NonNull Console.Processor processor) {
+  public OptionalParameter<T> serializer(@NonNull StringSerializer<T> serializer) {
+    this.serializer = Preconditions.checkNotNull(serializer, "serializer cannot be null");
+    return this;
+  }
+
+  @NonNull
+  public OptionalParameter<T> validator(@NonNull Validator validator) {
+    this.validator = Preconditions.checkNotNull(validator, "validator cannot be null");
+    return this;
+  }
+
+  @NonNull
+  public OptionalParameter<T> processor(@NonNull Console.Processor processor) {
     this.processor = Preconditions.checkNotNull(processor, "processor cannot be null");
     return this;
   }

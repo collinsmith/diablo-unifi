@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 import com.badlogic.gdx.Gdx;
 import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.command.CommandManager;
+import com.gmail.collinsmith70.command.Parameter;
+import com.gmail.collinsmith70.command.ParameterException;
 import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.util.StringUtils;
 import com.gmail.collinsmith70.validator.ValidationException;
@@ -39,12 +41,12 @@ public class CommandProcessor implements Console.Processor {
         return false;
       }
 
-      Console.Processor processor = command.getParam(args.length - 2).getProcessor();
-      if (processor == null) {
+      Parameter param = command.getParam(args.length - 2);
+      if (!param.canProcess()) {
         return false;
       }
 
-      return processor.hint(console, buffer);
+      return param.hint(console, buffer);
     }
 
     SortedMap<String, Command> commands = COMMANDS.prefixMap(args[0]);
@@ -93,7 +95,7 @@ public class CommandProcessor implements Console.Processor {
 
     try {
       cmd.newInstance(args).execute();
-    } catch (SerializeException|ValidationException e) {
+    } catch (SerializeException|ValidationException|ParameterException e) {
       String message = e.getMessage();
       if (message != null) {
         console.println(message);

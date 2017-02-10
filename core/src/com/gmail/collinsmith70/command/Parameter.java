@@ -9,55 +9,57 @@ import com.gmail.collinsmith70.libgdx.Console;
 import com.gmail.collinsmith70.serializer.StringSerializer;
 import com.gmail.collinsmith70.validator.Validator;
 
-@SuppressWarnings("unused")
-public class Parameter<T> implements StringSerializer<T>, Validator {
-
-  @NonNull
-  public static <T> Parameter<T> of(@NonNull Class<T> type,
-                                    @NonNull StringSerializer<T> serializer,
-                                    @NonNull Validator validator) {
-    return new Parameter<>(type, serializer, validator);
-  }
-
-  @NonNull
-  public static <T> Parameter<T> of(@NonNull Class<T> type,
-                                    @NonNull StringSerializer<T> serializer) {
-    return new Parameter<>(type, serializer, Validator.ACCEPT_ALL);
-  }
+public class Parameter<T> implements StringSerializer<T>, Validator, Console.Processor {
 
   @NonNull
   public static <T> Parameter<T> of(@NonNull Class<T> type) {
-    return new Parameter<>(type, null, Validator.ACCEPT_ALL);
+    return new Parameter<>(type);
   }
 
   @NonNull
   /*package*/ final Class<T> TYPE;
 
   @Nullable
-  /*package*/ final StringSerializer<T> SERIALIZER;
+  /*package*/ StringSerializer<T> serializer;
 
-  @NonNull
-  /*package*/ final Validator VALIDATOR;
+  @Nullable
+  /*package*/ Validator validator;
 
   @Nullable
   /*package*/ Console.Processor processor;
 
-  protected Parameter(@NonNull Class<T> type, @Nullable StringSerializer<T> serializer,
-                      @NonNull Validator validator) {
+  Parameter(@NonNull Class<T> type) {
     this.TYPE = Preconditions.checkNotNull(type, "type cannot be null");
-    this.SERIALIZER = serializer;
-    this.VALIDATOR = Preconditions.checkNotNull(validator, "validator cannot be null");
   }
 
   @NonNull
-  public Parameter<T> setProcessor(@NonNull Console.Processor processor) {
+  public Parameter<T> serializer(@NonNull StringSerializer<T> serializer) {
+    this.serializer = Preconditions.checkNotNull(serializer, "serializer cannot be null");
+    return this;
+  }
+
+  @NonNull
+  public Parameter<T> validator(@NonNull Validator validator) {
+    this.validator = Preconditions.checkNotNull(validator, "validator cannot be null");
+    return this;
+  }
+
+  @NonNull
+  public Parameter<T> processor(@NonNull Console.Processor processor) {
     this.processor = Preconditions.checkNotNull(processor, "processor cannot be null");
     return this;
   }
 
-  @Nullable
-  public Console.Processor getProcessor() {
-    return processor;
+  public boolean canSerialize() {
+    return serializer != null;
+  }
+
+  public boolean canValidate() {
+    return validator != null;
+  }
+
+  public boolean canProcess() {
+    return processor != null;
   }
 
   @NonNull
@@ -65,48 +67,73 @@ public class Parameter<T> implements StringSerializer<T>, Validator {
     return TYPE;
   }
 
-  @NonNull
-  @SuppressWarnings("SameReturnValue")
-  public String resolve(@NonNull String arg) {
-    return "";
-  }
-
-  @NonNull
-  @Override
-  public String serialize(@NonNull T obj) {
-    if (SERIALIZER == null) {
-      throw new UnsupportedOperationException("parameter is not serializable");
-    }
-
-    return SERIALIZER.serialize(obj);
-  }
-
-  @NonNull
-  @Override
-  public T deserialize(@NonNull String string) {
-    if (SERIALIZER == null) {
-      throw new UnsupportedOperationException("parameter is not deserializable");
-    }
-
-    return SERIALIZER.deserialize(string);
-  }
-
-  @Override
-  public void validate(@Nullable Object obj) {
-    VALIDATOR.validate(obj);
-  }
-
-  @Override
-  public boolean isValid(@Nullable Object obj) {
-    return VALIDATOR.isValid(obj);
-  }
-
   @Override
   public String toString() {
     return "<" + TYPE.getSimpleName() + ">";
   }
 
-  public interface Autocompleteable {
+  @NonNull
+  @Override
+  public String serialize(@NonNull T obj) {
+    if (serializer == null) {
+      throw new UnsupportedOperationException(this + " is not serializable");
+    }
 
+    return serializer.serialize(obj);
+  }
+
+  @NonNull
+  @Override
+  public T deserialize(@NonNull String string) {
+    if (serializer == null) {
+      throw new UnsupportedOperationException(this + " is not deserializable");
+    }
+
+    return serializer.deserialize(string);
+  }
+
+  @Override
+  public void validate(@Nullable Object obj) {
+    if (validator == null) {
+      throw new UnsupportedOperationException(this + " is not validatable");
+    }
+
+    validator.validate(obj);
+  }
+
+  @Override
+  public boolean isValid(@Nullable Object obj) {
+    if (validator == null) {
+      throw new UnsupportedOperationException(this + " is not validatable");
+    }
+
+    return validator.isValid(obj);
+  }
+
+  @Override
+  public boolean process(@NonNull Console console, @NonNull String buffer) {
+    if (processor == null) {
+      throw new UnsupportedOperationException(this + " cannot process console input");
+    }
+
+    return processor.process(console, buffer);
+  }
+
+  @Override
+  public boolean hint(@NonNull Console console, @NonNull CharSequence buffer) {
+    if (processor == null) {
+      throw new UnsupportedOperationException(this + " cannot process console input");
+    }
+
+    return processor.hint(console, buffer);
+  }
+
+  @Override
+  public void onUnprocessed(@NonNull Console console, @NonNull String buffer) {
+    if (processor == null) {
+      throw new UnsupportedOperationException(this + " cannot process console input");
+    }
+
+    processor.onUnprocessed(console, buffer);
   }
 }
