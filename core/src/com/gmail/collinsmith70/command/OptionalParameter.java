@@ -1,7 +1,5 @@
 package com.gmail.collinsmith70.command;
 
-import com.google.common.base.Preconditions;
-
 import android.support.annotation.NonNull;
 
 import com.gmail.collinsmith70.libgdx.Console;
@@ -21,19 +19,19 @@ public class OptionalParameter<T> extends Parameter<T> {
 
   @NonNull
   public OptionalParameter<T> serializer(@NonNull StringSerializer<T> serializer) {
-    this.serializer = Preconditions.checkNotNull(serializer, "serializer cannot be null");
+    super.serializer(serializer);
     return this;
   }
 
   @NonNull
   public OptionalParameter<T> validator(@NonNull Validator validator) {
-    this.validator = Preconditions.checkNotNull(validator, "validator cannot be null");
+    super.validator(validator);
     return this;
   }
 
   @NonNull
-  public OptionalParameter<T> processor(@NonNull Console.Processor processor) {
-    this.processor = Preconditions.checkNotNull(processor, "processor cannot be null");
+  public OptionalParameter<T> processor(@NonNull Console.SuggestionProvider suggestionProvider) {
+    super.processor(suggestionProvider);
     return this;
   }
 

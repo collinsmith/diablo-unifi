@@ -171,7 +171,7 @@ public class Client extends ApplicationAdapter {
             Commands.help.getAlias());
       }
     });
-    //console.addProcessor(new CvarProcessor(cvars));
+    //console.addProcessor(new CvarSuggestor(cvars));
 
     setupCvars();
 

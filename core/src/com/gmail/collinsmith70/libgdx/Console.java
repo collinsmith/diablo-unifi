@@ -35,7 +35,7 @@ public class Console extends PrintStream implements InputProcessor {
    * Listeners for buffer events (e.g., modification, committing, flushing).
    */
   @NonNull
-  private final Set<BufferListener> BUFFER_LISTENERS;
+  private final Set<SuggestionProvider> SUGGESTION_PROVIDERS;
 
   /**
    * Listeners for buffer commits.
@@ -62,7 +62,7 @@ public class Console extends PrintStream implements InputProcessor {
   public Console(@NonNull OutputStream out) {
     super(out, true);
     this.STREAM_LISTENERS = new CopyOnWriteArraySet<>();
-    this.BUFFER_LISTENERS = new CopyOnWriteArraySet<>();
+    this.SUGGESTION_PROVIDERS = new CopyOnWriteArraySet<>();
     this.COMMIT_PROCESSORS = new CopyOnWriteArraySet<>();
     this.BUFFER = new StringBuffer(INITIAL_BUFFER_CAPACITY);
   }
@@ -130,9 +130,6 @@ public class Console extends PrintStream implements InputProcessor {
     println(bufferContents);
     clearBuffer();
     onCommit(bufferContents);
-    for (BufferListener l : BUFFER_LISTENERS) {
-      l.onCommit(bufferContents);
-    }
 
     boolean handled = false;
     for (Processor l : COMMIT_PROCESSORS) {
@@ -198,15 +195,11 @@ public class Console extends PrintStream implements InputProcessor {
   }
 
   /**
-   * Called when the buffer is modified. Propagates event to all BufferListener instances.
+   * Called when the buffer is modified. Propagates event to all SuggestionProvider instances.
    */
   private void bufferModified() {
     String bufferContents = BUFFER.toString();
     onModified(bufferContents, caret);
-    for (BufferListener l : BUFFER_LISTENERS) {
-      l.onModified(bufferContents, caret);
-    }
-
     caretMoved();
   }
 
@@ -219,13 +212,10 @@ public class Console extends PrintStream implements InputProcessor {
   protected void onModified(@NonNull String buffer, int position) {}
 
   /**
-   * Called when the caret is moved. Propagates even to all BufferListener instances.
+   * Called when the caret is moved. Propagates even to all SuggestionProvider instances.
    */
   private void caretMoved() {
     onCaretMoved(caret);
-    for (BufferListener l : BUFFER_LISTENERS) {
-      l.onCaretMoved(caret);
-    }
   }
 
   /**
@@ -279,38 +269,38 @@ public class Console extends PrintStream implements InputProcessor {
   }
 
   /**
-   * Adds a BufferListener to receive buffer events.
+   * Adds a SuggestionProvider to receive buffer events.
    *
-   * @param l BufferListener to add
+   * @param l SuggestionProvider to add
    *
-   * @return {@code true} if the specified BufferListener was added, otherwise {@code false}
+   * @return {@code true} if the specified SuggestionProvider was added, otherwise {@code false}
    */
-  public boolean addBufferListener(@NonNull BufferListener l) {
+  public boolean addSuggestionProvider(@NonNull SuggestionProvider l) {
     Validate.isTrue(l != null);
-    return BUFFER_LISTENERS.add(l);
+    return SUGGESTION_PROVIDERS.add(l);
   }
 
   /**
-   * Removes the specified BufferListener.
+   * Removes the specified SuggestionProvider.
    *
-   * @param l BufferListener to remove
+   * @param l SuggestionProvider to remove
    *
-   * @return {@code true} if the specified BufferListener was removed, otherwise {@code false}
+   * @return {@code true} if the specified SuggestionProvider was removed, otherwise {@code false}
    */
-  public boolean removeBufferListener(@Nullable BufferListener l) {
-    return BUFFER_LISTENERS.remove(l);
+  public boolean removeSuggestionProvider(@Nullable SuggestionProvider l) {
+    return SUGGESTION_PROVIDERS.remove(l);
   }
 
   /**
-   * Checks whether or not a specified BufferListener will receive buffer events.
+   * Checks whether or not a specified SuggestionProvider will receive buffer events.
    *
-   * @param l BufferListener to check
+   * @param l SuggestionProvider to check
    *
-   * @return {@code true} if the specified BufferListener will receive buffer events,
+   * @return {@code true} if the specified SuggestionProvider will receive buffer events,
    *         otherwise {@code false}
    */
-  public boolean containsBufferListener(@Nullable BufferListener l) {
-    return BUFFER_LISTENERS.contains(l);
+  public boolean containsSuggestionProvider(@Nullable SuggestionProvider l) {
+    return SUGGESTION_PROVIDERS.contains(l);
   }
 
   /**
@@ -409,7 +399,7 @@ public class Console extends PrintStream implements InputProcessor {
         }
 
         boolean handled;
-        for (Processor l : COMMIT_PROCESSORS) {
+        for (SuggestionProvider l : SUGGESTION_PROVIDERS) {
           CharSequence bufferWrapper = new CharSequence() {
             @Override
             public int length() {
@@ -426,7 +416,7 @@ public class Console extends PrintStream implements InputProcessor {
               return BUFFER.subSequence(start, end);
             }
           };
-          handled = l.hint(this, bufferWrapper);
+          handled = l.suggest(this, bufferWrapper);
           if (handled) {
             break;
           }
@@ -468,23 +458,17 @@ public class Console extends PrintStream implements InputProcessor {
     return false;
   }
 
-  public interface BufferListener {
-
-    void onModified(@NonNull String buffer, int position);
-
-    void onCommit(@NonNull String buffer);
-
-    void onCaretMoved(int position);
-
-  }
-
   public interface Processor {
 
     boolean process(@NonNull Console console, @NonNull String buffer);
 
-    boolean hint(@NonNull Console console, @NonNull CharSequence buffer);
-
     void onUnprocessed(@NonNull Console console, @NonNull String buffer);
+
+  }
+
+  public interface SuggestionProvider {
+
+    boolean suggest(@NonNull Console console, @NonNull CharSequence buffer);
 
   }
 

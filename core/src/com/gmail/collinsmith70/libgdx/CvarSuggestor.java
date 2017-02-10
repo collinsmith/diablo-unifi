@@ -8,11 +8,11 @@ import com.gmail.collinsmith70.util.StringUtils;
 
 import java.util.Collection;
 
-public enum CvarProcessor implements Console.Processor {
+public enum CvarSuggestor implements Console.SuggestionProvider {
   INSTANCE;
 
   @Override
-  public boolean hint(@NonNull Console console, @NonNull CharSequence buffer) {
+  public boolean suggest(@NonNull Console console, @NonNull CharSequence buffer) {
     if (buffer.length() == 0) {
       return false;
     }
@@ -24,7 +24,7 @@ public enum CvarProcessor implements Console.Processor {
         return false;
       case 1:
         Cvar singleCvar = cvars.iterator().next();
-        console.setBuffer(buffer + singleCvar.getAlias());
+        console.setBuffer(buffer.toString() + singleCvar.getAlias());
         return true;
       default:
         for (Cvar cvar : cvars) {
@@ -34,12 +34,4 @@ public enum CvarProcessor implements Console.Processor {
         return true;
     }
   }
-
-  @Override
-  public boolean process(@NonNull Console console, @NonNull String buffer) {
-    return false;
-  }
-
-  @Override
-  public void onUnprocessed(@NonNull Console console, @NonNull String buffer) {}
 }

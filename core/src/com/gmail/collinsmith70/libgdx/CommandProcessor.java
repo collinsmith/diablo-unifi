@@ -15,7 +15,7 @@ import java.util.SortedMap;
 
 import static com.gmail.collinsmith70.util.StringUtils.parseArgs;
 
-public class CommandProcessor implements Console.Processor {
+public class CommandProcessor implements Console.Processor, Console.SuggestionProvider {
 
   private static final String TAG = "CommandProcessor";
 
@@ -27,7 +27,7 @@ public class CommandProcessor implements Console.Processor {
   }
 
   @Override
-  public boolean hint(@NonNull Console console, @NonNull CharSequence buffer) {
+  public boolean suggest(@NonNull Console console, @NonNull CharSequence buffer) {
     if (buffer.length() == 0) {
       return false;
     }
@@ -42,11 +42,11 @@ public class CommandProcessor implements Console.Processor {
       }
 
       Parameter param = command.getParam(args.length - 2);
-      if (!param.canProcess()) {
+      if (!param.canSuggest()) {
         return false;
       }
 
-      return param.hint(console, buffer);
+      return param.suggest(console, buffer);
     }
 
     SortedMap<String, Command> commands = COMMANDS.prefixMap(args[0]);

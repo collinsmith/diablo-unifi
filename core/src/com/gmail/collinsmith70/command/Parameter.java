@@ -9,7 +9,7 @@ import com.gmail.collinsmith70.libgdx.Console;
 import com.gmail.collinsmith70.serializer.StringSerializer;
 import com.gmail.collinsmith70.validator.Validator;
 
-public class Parameter<T> implements StringSerializer<T>, Validator, Console.Processor {
+public class Parameter<T> implements StringSerializer<T>, Validator, Console.SuggestionProvider {
 
   @NonNull
   public static <T> Parameter<T> of(@NonNull Class<T> type) {
@@ -26,7 +26,7 @@ public class Parameter<T> implements StringSerializer<T>, Validator, Console.Pro
   /*package*/ Validator validator;
 
   @Nullable
-  /*package*/ Console.Processor processor;
+  /*package*/ Console.SuggestionProvider suggestionProvider;
 
   Parameter(@NonNull Class<T> type) {
     this.TYPE = Preconditions.checkNotNull(type, "type cannot be null");
@@ -45,8 +45,9 @@ public class Parameter<T> implements StringSerializer<T>, Validator, Console.Pro
   }
 
   @NonNull
-  public Parameter<T> processor(@NonNull Console.Processor processor) {
-    this.processor = Preconditions.checkNotNull(processor, "processor cannot be null");
+  public Parameter<T> processor(@NonNull Console.SuggestionProvider suggestionProvider) {
+    this.suggestionProvider
+        = Preconditions.checkNotNull(suggestionProvider, "suggestionProvider cannot be null");
     return this;
   }
 
@@ -58,8 +59,8 @@ public class Parameter<T> implements StringSerializer<T>, Validator, Console.Pro
     return validator != null;
   }
 
-  public boolean canProcess() {
-    return processor != null;
+  public boolean canSuggest() {
+    return suggestionProvider != null;
   }
 
   @NonNull
@@ -111,29 +112,11 @@ public class Parameter<T> implements StringSerializer<T>, Validator, Console.Pro
   }
 
   @Override
-  public boolean process(@NonNull Console console, @NonNull String buffer) {
-    if (processor == null) {
+  public boolean suggest(@NonNull Console console, @NonNull CharSequence buffer) {
+    if (suggestionProvider == null) {
       throw new UnsupportedOperationException(this + " cannot process console input");
     }
 
-    return processor.process(console, buffer);
-  }
-
-  @Override
-  public boolean hint(@NonNull Console console, @NonNull CharSequence buffer) {
-    if (processor == null) {
-      throw new UnsupportedOperationException(this + " cannot process console input");
-    }
-
-    return processor.hint(console, buffer);
-  }
-
-  @Override
-  public void onUnprocessed(@NonNull Console console, @NonNull String buffer) {
-    if (processor == null) {
-      throw new UnsupportedOperationException(this + " cannot process console input");
-    }
-
-    processor.onUnprocessed(console, buffer);
+    return suggestionProvider.suggest(console, buffer);
   }
 }
