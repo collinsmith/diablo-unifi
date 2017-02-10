@@ -43,7 +43,7 @@ public class RenderableConsole extends Console implements Disposable {
   private BitmapFont font;
 
   private Texture modalBackgroundTexture;
-  private Texture highlightBackgroundTexture;
+  private Texture hintBackgroundTexture;
   private Texture cursorTexture;
 
   private static final float CARET_BLINK_DELAY = 0.5f;
@@ -87,7 +87,7 @@ public class RenderableConsole extends Console implements Disposable {
 
   public void create() {
     Pixmap solidColorPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-    solidColorPixmap.setColor(0.0f, 0.0f, 1.0f, 0.5f);
+    solidColorPixmap.setColor(0.0f, 0.0f, 0.0f, 0.5f);
     solidColorPixmap.fill();
     modalBackgroundTexture = new Texture(solidColorPixmap);
     solidColorPixmap.dispose();
@@ -101,7 +101,7 @@ public class RenderableConsole extends Console implements Disposable {
     solidColorPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
     solidColorPixmap.setColor(0.0f, 0.0f, 1.0f, 0.5f);
     solidColorPixmap.fill();
-    highlightBackgroundTexture = new Texture(solidColorPixmap);
+    hintBackgroundTexture = new Texture(solidColorPixmap);
     solidColorPixmap.dispose();
 
     final Cvar.StateListener<Float> colorChangeListener = new SimpleCvarStateAdapter<Float>() {
@@ -222,7 +222,7 @@ public class RenderableConsole extends Console implements Disposable {
   public void dispose() {
     cursorTexture.dispose();
     modalBackgroundTexture.dispose();
-    highlightBackgroundTexture.dispose();
+    hintBackgroundTexture.dispose();
   }
 
   @Override
