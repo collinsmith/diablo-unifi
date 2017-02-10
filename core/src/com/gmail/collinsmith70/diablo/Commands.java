@@ -14,6 +14,7 @@ import com.gmail.collinsmith70.validator.ValidationException;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @SuppressWarnings({ "unused", "ConstantConditions" })
@@ -82,6 +83,18 @@ class Commands {
         }
       });
 
+  public static final Command cvars = new Command("cvars", "Prints all cvars and values",
+      new Action() {
+        @Override
+        public void onExecuted(@NonNull Command.Instance instance) {
+          Collection<Cvar> cvars = Diablo.client.cvars().getCvars();
+          for (Cvar cvar : cvars) {
+            Diablo.client.console.println("%s \"%s\"; %s (Default: \"%s\")",
+                cvar.getAlias(), cvar.getValue(), cvar.getDescription(), cvar.getDefaultValue());
+          }
+        }
+      });
+
   public static final Command get = new Command("get", "Get the value of the specified cvar",
       new Action() {
         @Override
@@ -89,7 +102,8 @@ class Commands {
           String alias = instance.getArg(0);
           Cvar cvar = Diablo.client.cvars().get(alias);
           if (cvar == null) {
-            throw new SerializeException("Failed to find cvar by alias: " + alias);
+            throw new SerializeException("Failed to find cvar by alias: " + alias +
+                ". For a list of cvars type \"" + cvars.getAlias() + "\"");
           }
 
           Diablo.client.console.println("%s = %s", cvar.getAlias(), cvar.getValue());
