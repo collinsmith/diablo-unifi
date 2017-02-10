@@ -80,7 +80,7 @@ public class NumberRangeValidator<T extends Number & Comparable<? super T>>
     }
 
     T castedObj = (T) obj;
-    if (MIN.compareTo(castedObj) > 0 && MAX.compareTo(castedObj) < 0) {
+    if (MIN.compareTo(castedObj) > 0 || MAX.compareTo(castedObj) < 0) {
       throw new RangeValidationException(MIN, MAX);
     }
   }
