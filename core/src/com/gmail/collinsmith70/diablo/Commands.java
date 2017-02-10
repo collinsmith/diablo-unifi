@@ -96,8 +96,9 @@ class Commands {
           String alias = instance.getArg(0);
           Cvar cvar = Diablo.client.cvars().get(alias);
           if (cvar == null) {
-            throw new ParameterException("Failed to find cvar by alias: " + alias +
-                ". For a list of cvars type \"" + cvars.getAlias() + "\"");
+            throw new ParameterException(
+                "Failed to find cvar by alias: %s. For a list of cvars type \"%s\"",
+                alias, cvars.getAlias());
           }
 
           Diablo.client.console.println("%s = %s", cvar.getAlias(), cvar.getValue());
@@ -119,10 +120,10 @@ class Commands {
           try {
             cvar.setValue(value, serializer);
           } catch (SerializeException e) {
-            Diablo.client.console.println("Invalid value specified: \"%s\". Expected type: %s",
+            throw new ParameterException("Invalid value specified: \"%s\". Expected type: %s",
                 value, cvar.getType().getName());
           } catch (ValidationException e) {
-            Diablo.client.console.println("Invalid value specified: \"%s\". %s",
+            throw new ParameterException("Invalid value specified: \"%s\". %s",
                 value, e.getMessage());
           }
         }
