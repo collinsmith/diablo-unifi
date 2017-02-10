@@ -44,7 +44,7 @@ public class RangeValidationException extends ValidationException {
    * @param max The maximum value of the {@link RangeValidator}
    */
   public RangeValidationException(@NonNull Object min, @NonNull Object max) {
-    super(String.format("passed reference must lie between %s and %s (inclusive)", min, max));
+    super(String.format("Value must lie between %s and %s (inclusive)", min, max));
     this.MIN = Preconditions.checkNotNull(min);
     this.MAX = Preconditions.checkNotNull(max);
   }
