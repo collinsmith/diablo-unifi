@@ -1,5 +1,7 @@
 package com.gmail.collinsmith70.diablo;
 
+import com.google.common.base.Preconditions;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -53,7 +55,6 @@ public class RenderableConsole extends Console implements Disposable {
   private ListIterator<String> historyIterator;
 
   private int clientWidth, clientHeight;
-  private float lineHeight;
   private float textHeight;
   private int consoleHeight;
   private float outputHeight;
@@ -68,7 +69,7 @@ public class RenderableConsole extends Console implements Disposable {
 
     this.clientWidth = client.width();
     this.clientHeight = client.height();
-    this.lineHeight = font.getLineHeight();
+    float lineHeight = font.getLineHeight();
     this.textHeight = font.getCapHeight();
     this.consoleHeight = (int) (clientHeight * this.height);
     this.consoleY = clientHeight - consoleHeight;
@@ -132,6 +133,8 @@ public class RenderableConsole extends Console implements Disposable {
     final Cvar.StateListener<Float> colorChangeListener = new SimpleCvarStateAdapter<Float>() {
       @Override
       public void onChanged(@NonNull Cvar<Float> cvar, @Nullable Float from, @Nullable Float to) {
+        Preconditions.checkState(font != null, "font should not be null");
+        Preconditions.checkState(to != null, "to should not be null");
         if (cvar.equals(Cvars.Client.Console.Color.a)) {
           font.getColor().a = to;
         } else if (cvar.equals(Cvars.Client.Console.Color.r)) {
@@ -162,6 +165,7 @@ public class RenderableConsole extends Console implements Disposable {
     Cvars.Client.Console.Height.addStateListener(new SimpleCvarStateAdapter<Float>() {
       @Override
       public void onChanged(@NonNull Cvar<Float> cvar, @Nullable Float from, @Nullable Float to) {
+        Preconditions.checkState(to != null, "to should not be null");
         height = to;
         recalculateScrollOffsetMin();
       }
@@ -189,6 +193,7 @@ public class RenderableConsole extends Console implements Disposable {
     this.showCaret = true;
   }
 
+  @SuppressWarnings("UnusedParameters")
   public void resize(int width, int height) {
     recalculateScrollOffsetMin();
   }
@@ -272,10 +277,6 @@ public class RenderableConsole extends Console implements Disposable {
 
         return true;
       case Input.Keys.TAB:
-        if (!isBufferEmpty()) {
-
-        }
-
         return true;
       default:
         return super.keyDown(keycode);
@@ -283,6 +284,7 @@ public class RenderableConsole extends Console implements Disposable {
   }
 
   @Override
+  @SuppressWarnings("SimplifiableIfStatement")
   public boolean keyTyped(char ch) {
     if (Keys.Console.isAssigned(Input.Keys.valueOf(Character.toString(ch)))) {
       return true;
