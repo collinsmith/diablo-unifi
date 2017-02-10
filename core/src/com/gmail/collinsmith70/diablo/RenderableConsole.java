@@ -308,6 +308,12 @@ public class RenderableConsole extends Console implements Disposable {
   }
 
   @Override
+  public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+    Gdx.input.setOnscreenKeyboardVisible(true);
+    return super.touchDown(screenX, screenY, pointer, button);
+  }
+
+  @Override
   public void println(@NonNull String str) {
     super.println(str);
     OUTPUT.add(str);
