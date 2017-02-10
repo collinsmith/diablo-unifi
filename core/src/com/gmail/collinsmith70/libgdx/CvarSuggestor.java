@@ -4,7 +4,6 @@ import android.support.annotation.NonNull;
 
 import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.diablo.Diablo;
-import com.gmail.collinsmith70.util.StringUtils;
 
 import java.util.Collection;
 
@@ -12,12 +11,12 @@ public enum CvarSuggestor implements Console.SuggestionProvider {
   INSTANCE;
 
   @Override
-  public boolean suggest(@NonNull Console console, @NonNull CharSequence buffer) {
+  public boolean suggest(@NonNull Console console, @NonNull CharSequence buffer,
+                         @NonNull String[] args) {
     if (buffer.length() == 0) {
       return false;
     }
 
-    String[] args = StringUtils.parseArgs(buffer);
     Collection<Cvar> cvars = Diablo.client.cvars().search(args[args.length - 1]);
     switch (cvars.size()) {
       case 0:

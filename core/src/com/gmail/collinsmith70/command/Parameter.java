@@ -20,13 +20,13 @@ public class Parameter<T> implements StringSerializer<T>, Validator, Console.Sug
   /*package*/ final Class<T> TYPE;
 
   @Nullable
-  /*package*/ StringSerializer<T> serializer;
+  private StringSerializer<T> serializer;
 
   @Nullable
-  /*package*/ Validator validator;
+  private Validator validator;
 
   @Nullable
-  /*package*/ Console.SuggestionProvider suggestionProvider;
+  private Console.SuggestionProvider suggestionProvider;
 
   Parameter(@NonNull Class<T> type) {
     this.TYPE = Preconditions.checkNotNull(type, "type cannot be null");
@@ -112,11 +112,12 @@ public class Parameter<T> implements StringSerializer<T>, Validator, Console.Sug
   }
 
   @Override
-  public boolean suggest(@NonNull Console console, @NonNull CharSequence buffer) {
+  public boolean suggest(@NonNull Console console, @NonNull CharSequence buffer,
+                         @NonNull String[] args) {
     if (suggestionProvider == null) {
       throw new UnsupportedOperationException(this + " cannot process console input");
     }
 
-    return suggestionProvider.suggest(console, buffer);
+    return suggestionProvider.suggest(console, buffer, args);
   }
 }

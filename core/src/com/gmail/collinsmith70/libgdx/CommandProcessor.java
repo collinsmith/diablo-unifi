@@ -8,7 +8,6 @@ import com.gmail.collinsmith70.command.CommandManager;
 import com.gmail.collinsmith70.command.Parameter;
 import com.gmail.collinsmith70.command.ParameterException;
 import com.gmail.collinsmith70.serializer.SerializeException;
-import com.gmail.collinsmith70.util.StringUtils;
 import com.gmail.collinsmith70.validator.ValidationException;
 
 import java.util.SortedMap;
@@ -27,12 +26,12 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
   }
 
   @Override
-  public boolean suggest(@NonNull Console console, @NonNull CharSequence buffer) {
+  public boolean suggest(@NonNull Console console, @NonNull CharSequence buffer,
+                         @NonNull String[] args) {
     if (buffer.length() == 0) {
       return false;
     }
 
-    String[] args = StringUtils.parseArgs(buffer);
     if (args.length == 0) {
       return false;
     } else if (args.length > 1) {
@@ -46,7 +45,7 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
         return false;
       }
 
-      return param.suggest(console, buffer);
+      return param.suggest(console, buffer, args);
     }
 
     SortedMap<String, Command> commands = COMMANDS.prefixMap(args[0]);

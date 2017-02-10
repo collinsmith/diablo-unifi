@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.gmail.collinsmith70.util.StringUtils;
 
 import org.apache.commons.lang3.Validate;
 
@@ -399,24 +400,25 @@ public class Console extends PrintStream implements InputProcessor {
         }
 
         boolean handled;
+        String[] args = StringUtils.parseArgs(BUFFER);
+        CharSequence bufferWrapper = new CharSequence() {
+          @Override
+          public int length() {
+            return BUFFER.length();
+          }
+
+          @Override
+          public char charAt(int index) {
+            return BUFFER.charAt(index);
+          }
+
+          @Override
+          public CharSequence subSequence(int start, int end) {
+            return BUFFER.subSequence(start, end);
+          }
+        };
         for (SuggestionProvider l : SUGGESTION_PROVIDERS) {
-          CharSequence bufferWrapper = new CharSequence() {
-            @Override
-            public int length() {
-              return BUFFER.length();
-            }
-
-            @Override
-            public char charAt(int index) {
-              return BUFFER.charAt(index);
-            }
-
-            @Override
-            public CharSequence subSequence(int start, int end) {
-              return BUFFER.subSequence(start, end);
-            }
-          };
-          handled = l.suggest(this, bufferWrapper);
+          handled = l.suggest(this, bufferWrapper, args);
           if (handled) {
             break;
           }
@@ -468,7 +470,7 @@ public class Console extends PrintStream implements InputProcessor {
 
   public interface SuggestionProvider {
 
-    boolean suggest(@NonNull Console console, @NonNull CharSequence buffer);
+    boolean suggest(@NonNull Console console, @NonNull CharSequence buffer, @NonNull String[] args);
 
   }
 
