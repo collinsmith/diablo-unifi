@@ -17,7 +17,9 @@ import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.Console;
 
 import java.io.OutputStream;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -29,8 +31,11 @@ public class RenderableConsole extends Console implements Disposable {
 
   private final Client client;
 
+  private float height;
+
   private final List<String> OUTPUT = new ArrayList<>();
-  private float outputOffset;
+  private int scrollOffset;
+  private int scrollOffsetMin;
 
   private boolean visible;
 
@@ -66,7 +71,8 @@ public class RenderableConsole extends Console implements Disposable {
     if (this.visible != b) {
       this.visible = b;
       updateCaret();
-      Gdx.input.setOnscreenKeyboardVisible(true);
+      Gdx.input.setOnscreenKeyboardVisible(b);
+      scrollOffset = OUTPUT.size();
     }
   }
 
@@ -81,7 +87,7 @@ public class RenderableConsole extends Console implements Disposable {
 
   public void create() {
     Pixmap solidColorPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-    solidColorPixmap.setColor(0.0f, 0.0f, 0.0f, 0.5f);
+    solidColorPixmap.setColor(0.0f, 0.0f, 1.0f, 0.5f);
     solidColorPixmap.fill();
     modalBackgroundTexture = new Texture(solidColorPixmap);
     solidColorPixmap.dispose();
@@ -127,6 +133,13 @@ public class RenderableConsole extends Console implements Disposable {
       }
     });
 
+    Cvars.Client.Console.Height.addStateListener(new SimpleCvarStateAdapter<Float>() {
+      @Override
+      public void onChanged(@NonNull Cvar<Float> cvar, @Nullable Float from, @Nullable Float to) {
+        height = to;
+      }
+    });
+
     caretBlinkTask = new Timer.Task() {
       @Override
       public void run() {
@@ -136,6 +149,10 @@ public class RenderableConsole extends Console implements Disposable {
 
     clearBuffer();
     updateCaret();
+
+    Calendar calendar = Calendar.getInstance();
+    DateFormat format = DateFormat.getDateTimeInstance();
+    println(format.format(calendar.getTime()));
   }
 
   @Override
@@ -154,39 +171,50 @@ public class RenderableConsole extends Console implements Disposable {
       return;
     }
 
-    b.draw(modalBackgroundTexture, 0.0f, 0.0f, client.width(), client.height());
+    final int clientWidth = client.width();
+    final int clientHeight = client.height();
+    final float textHeight = font.getCapHeight();
+    final int height = (int)(clientHeight * this.height);
+    final float y = clientHeight - height;
+    final float bufferY = y + textHeight;
+    b.draw(modalBackgroundTexture, 0.0f, y - 4, clientWidth, height + 4);
     if (font == null) {
       return;
     }
 
-    final int height = client.height();
     String bufferContents = getBufferContents();
-    GlyphLayout glyphs = font.draw(b, BUFFER_PREFIX + " " + bufferContents, 0, height);
+    GlyphLayout glyphs = font.draw(b, BUFFER_PREFIX + " " + bufferContents, 0, bufferY - 2);
+    b.draw(cursorTexture, 0, bufferY, clientWidth, 2);
     if (showCaret) {
       glyphs.setText(font, BUFFER_PREFIX + " " + bufferContents.substring(0, getCaretPosition()));
-      b.draw(cursorTexture,
-          glyphs.width, height - font.getCapHeight(),
-          2, font.getCapHeight());
+      b.draw(cursorTexture, glyphs.width, y - 2, 2, textHeight);
     }
 
-    float position;
-    int outputSize = OUTPUT.size();
     final float lineHeight = font.getLineHeight();
-    if (lineHeight * outputSize >= height) {
-      position = lineHeight;
-      position += outputOffset;
-    } else {
-      position = height - lineHeight * outputSize;
+    final float outputOffset = scrollOffset * textHeight;
+    final float outputHeight = height - lineHeight - textHeight;
+    if (outputOffset < outputHeight) {
+      // offsets output to always appear that it starts at top of console window
+      scrollOffsetMin = (int) (outputHeight / font.getCapHeight()) + 1;
+      scrollOffset = Math.max(scrollOffset, scrollOffsetMin);
     }
 
-    for (ListIterator<String> it = OUTPUT.listIterator(outputSize); it.hasPrevious();) {
-      String line = it.previous();
-      if (position >= height) {
+    float position = bufferY + lineHeight;
+    final int outputSize = OUTPUT.size();
+    if (scrollOffset > outputSize) {
+      scrollOffset = outputSize;
+      position += ((scrollOffsetMin - scrollOffset) * textHeight);
+    }
+
+    for (ListIterator<String> it = OUTPUT.listIterator(scrollOffset);
+         it.hasPrevious();) {
+      if (position > clientHeight) {
         break;
       }
 
+      String line = it.previous();
       font.draw(b, line, 0.0f, position);
-      position += lineHeight;
+      position += textHeight;
     }
   }
 
@@ -249,14 +277,10 @@ public class RenderableConsole extends Console implements Disposable {
 
     switch (amount) {
       case -1:
-        outputOffset = Math.max(
-            outputOffset - font.getLineHeight(),
-            client.height() - (OUTPUT.size() * font.getLineHeight()));
+        scrollOffset = Math.max(scrollOffset - 1, 0);
         break;
       case 1:
-        outputOffset = Math.min(
-            outputOffset + font.getLineHeight(),
-            client.height() - 2*font.getLineHeight());
+        scrollOffset = Math.min(scrollOffset + 1, OUTPUT.size());
         break;
       default:
         Gdx.app.error(TAG, "Unexpected scroll amount: " + amount);
@@ -269,5 +293,9 @@ public class RenderableConsole extends Console implements Disposable {
   public void println(@NonNull String str) {
     super.println(str);
     OUTPUT.add(str);
+    int size = OUTPUT.size();
+    if (scrollOffset == size - 1) {
+      scrollOffset = size;
+    }
   }
 }

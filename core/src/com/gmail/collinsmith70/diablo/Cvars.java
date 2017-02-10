@@ -73,6 +73,13 @@ public class Cvars {
           "default.fnt",
           Validator.ACCEPT_NON_NULL_NON_EMPTY_STRING);
 
+      public static final Cvar<Float> Height = new ValidatableCvar<>(
+          "Client.Console.Height",
+          "Height of the console in percent of screen height",
+          Float.class,
+          0.5f,
+          new NumberRangeValidator<>(0.25f, 1.0f));
+
       public static class Color {
         private Color() {
           //...

@@ -384,6 +384,14 @@ public class Console extends PrintStream implements InputProcessor {
         caret = Math.min(caret + 1, BUFFER.length());
         caretMoved();
         return true;
+      case Input.Keys.HOME:
+        caret = 0;
+        caretMoved();
+        return true;
+      case Input.Keys.END:
+        caret = BUFFER.length();
+        caretMoved();
+        return true;
     }
 
     return false;
@@ -432,6 +440,8 @@ public class Console extends PrintStream implements InputProcessor {
   public interface Processor {
 
     boolean process(@NonNull Console console, @NonNull String buffer);
+
+    //boolean resolve(@NonNull String buffer);
 
     void onUnprocessed(@NonNull Console console, @NonNull String buffer);
 
