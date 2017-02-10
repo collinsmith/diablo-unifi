@@ -204,9 +204,6 @@ public class RenderableConsole extends Console implements Disposable {
     }
 
     b.draw(modalBackgroundTexture, 0.0f, consoleY - 4, clientWidth, consoleHeight + 4);
-    if (font == null) {
-      return;
-    }
 
     String bufferContents = getBufferContents();
     GlyphLayout glyphs = font.draw(b, BUFFER_PREFIX + " " + bufferContents, 0, bufferY - 2);
