@@ -2,56 +2,42 @@ package com.gmail.collinsmith70.libgdx;
 
 import android.support.annotation.NonNull;
 
-import com.badlogic.gdx.Gdx;
 import com.gmail.collinsmith70.cvar.Cvar;
-import com.gmail.collinsmith70.serializer.SerializeException;
-import com.gmail.collinsmith70.serializer.StringSerializer;
+import com.gmail.collinsmith70.diablo.Diablo;
+import com.gmail.collinsmith70.util.StringUtils;
 
-@Deprecated
-public class CvarProcessor implements Console.Processor {
+import java.util.Collection;
 
-  @NonNull
-  private static final String TAG = "CvarProcessor";
-
-  @NonNull
-  private final GdxCvarManager CVARS;
-
-  public CvarProcessor(@NonNull GdxCvarManager cvarManager) {
-    this.CVARS = cvarManager;
-  }
+public enum CvarProcessor implements Console.Processor {
+  INSTANCE;
 
   @Override
   public boolean hint(@NonNull Console console, @NonNull CharSequence buffer) {
-    return false;
-  }
-
-  @Override
-  @SuppressWarnings({ "unchecked", "ConstantConditions" })
-  public boolean process(@NonNull Console console, @NonNull String buffer) {
-    String[] args = buffer.split("\\s+");
-    Cvar cvar = CVARS.get(args[0]);
-    if (cvar == null) {
+    if (buffer.length() == 0) {
       return false;
     }
 
-    switch (args.length) {
+    String[] args = StringUtils.parseArgs(buffer);
+    Collection<Cvar> cvars = Diablo.client.cvars().search(args[args.length - 1]);
+    switch (cvars.size()) {
+      case 0:
+        return false;
       case 1:
-        console.println(cvar.getAlias() + " = " + cvar.getValue());
-        break;
-      case 2:
-        String to = args[1];
-        console.println(cvar.getAlias() + " = " + to);
-        try {
-          StringSerializer serializer = CVARS.getSerializer(cvar);
-          cvar.setValue(to, serializer);
-        } catch (SerializeException e) {
-          console.println(String.format("Invalid value specified: \"%s\", Expected type: %s",
-              to, cvar.getType().getName()));
-          Gdx.app.error(TAG, e.getCause().getMessage(), e);
+        Cvar singleCvar = cvars.iterator().next();
+        console.setBuffer(buffer + singleCvar.getAlias());
+        return true;
+      default:
+        for (Cvar cvar : cvars) {
+          console.println(cvar.getAlias());
         }
-    }
 
-    return true;
+        return true;
+    }
+  }
+
+  @Override
+  public boolean process(@NonNull Console console, @NonNull String buffer) {
+    return false;
   }
 
   @Override

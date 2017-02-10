@@ -99,6 +99,11 @@ public class Command implements Validator {
     return ImmutableSet.copyOf(ALIASES);
   }
 
+  @NonNull
+  public Parameter getParam(@IntRange(from = 0) int index) {
+    return PARAMS[index];
+  }
+
   @IntRange(from = 0)
   public int minArgs() {
     return MINIMUM_ARGS;

@@ -404,6 +404,10 @@ public class Console extends PrintStream implements InputProcessor {
         caretMoved();
         return true;
       case Input.Keys.TAB:
+        if (caret != BUFFER.length()) {
+          break;
+        }
+
         boolean handled;
         for (Processor l : COMMIT_PROCESSORS) {
           CharSequence bufferWrapper = new CharSequence() {

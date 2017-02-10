@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.gmail.collinsmith70.libgdx.Console;
 import com.gmail.collinsmith70.serializer.StringSerializer;
 import com.gmail.collinsmith70.validator.Validator;
 
@@ -30,19 +31,33 @@ public class Parameter<T> implements StringSerializer<T>, Validator {
   }
 
   @NonNull
-  /*package*/ Class<T> TYPE;
+  /*package*/ final Class<T> TYPE;
 
   @Nullable
-  /*package*/ StringSerializer<T> SERIALIZER;
+  /*package*/ final StringSerializer<T> SERIALIZER;
 
   @NonNull
-  /*package*/ Validator VALIDATOR;
+  /*package*/ final Validator VALIDATOR;
+
+  @Nullable
+  /*package*/ Console.Processor processor;
 
   protected Parameter(@NonNull Class<T> type, @Nullable StringSerializer<T> serializer,
                       @NonNull Validator validator) {
     this.TYPE = Preconditions.checkNotNull(type, "type cannot be null");
     this.SERIALIZER = serializer;
     this.VALIDATOR = Preconditions.checkNotNull(validator, "validator cannot be null");
+  }
+
+  @NonNull
+  public Parameter<T> setProcessor(@NonNull Console.Processor processor) {
+    this.processor = Preconditions.checkNotNull(processor, "processor cannot be null");
+    return this;
+  }
+
+  @Nullable
+  public Console.Processor getProcessor() {
+    return processor;
   }
 
   @NonNull

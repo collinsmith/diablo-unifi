@@ -1,27 +1,21 @@
 package com.gmail.collinsmith70.libgdx;
 
-import com.google.common.base.Strings;
-
 import android.support.annotation.NonNull;
 
 import com.badlogic.gdx.Gdx;
 import com.gmail.collinsmith70.command.Command;
 import com.gmail.collinsmith70.command.CommandManager;
 import com.gmail.collinsmith70.serializer.SerializeException;
+import com.gmail.collinsmith70.util.StringUtils;
 import com.gmail.collinsmith70.validator.ValidationException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.SortedMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static com.gmail.collinsmith70.util.StringUtils.parseArgs;
 
 public class CommandProcessor implements Console.Processor {
 
   private static final String TAG = "CommandProcessor";
-
-  private static final Pattern PATTERN = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 
   @NonNull
   private final CommandManager COMMANDS;
@@ -36,9 +30,21 @@ public class CommandProcessor implements Console.Processor {
       return false;
     }
 
-    String[] args = parseArgs(buffer);
+    String[] args = StringUtils.parseArgs(buffer);
     if (args.length == 0) {
       return false;
+    } else if (args.length > 1) {
+      Command command = COMMANDS.get(args[0]);
+      if (command == null) {
+        return false;
+      }
+
+      Console.Processor processor = command.getParam(args.length - 2).getProcessor();
+      if (processor == null) {
+        return false;
+      }
+
+      return processor.hint(console, buffer);
     }
 
     SortedMap<String, Command> commands = COMMANDS.prefixMap(args[0]);
@@ -50,13 +56,18 @@ public class CommandProcessor implements Console.Processor {
         console.keyTyped(' ');
         return true;
       default:
-        int i = 0;
+        for (String alias : commands.keySet()) {
+          console.println(alias);
+        }
+
+        /*int i = 0;
         StringBuilder sb = new StringBuilder(64);
         for (Iterator<String> it = commands.keySet().iterator(); it.hasNext();) {
           String alias = it.next();
           if (++i % 6 == 0) {
             sb.append(alias);
-            sb.append('\n');
+            console.println(sb.toString());
+            sb.setLength(0);
           } else if (it.hasNext()) {
             sb.append(Strings.padEnd(alias, 12, ' '));
           } else {
@@ -64,7 +75,10 @@ public class CommandProcessor implements Console.Processor {
           }
         }
 
-        console.println(sb.toString());
+        if (sb.length() > 0) {
+          console.println(sb.toString());
+        }*/
+
         return true;
     }
   }
@@ -91,26 +105,6 @@ public class CommandProcessor implements Console.Processor {
     }
 
     return true;
-  }
-
-  private String[] parseArgs(@NonNull CharSequence buffer) {
-    String tmp;
-    Collection<String> args = new ArrayList<>(8);
-    Matcher matcher = PATTERN.matcher(buffer);
-    while (matcher.find()) {
-      if ((tmp = matcher.group(1)) != null) {
-        // Add double-quoted string without the quotes
-        args.add(tmp);
-      } else if ((tmp = matcher.group(2)) != null) {
-        // Add single-quoted string without the quotes
-        args.add(tmp);
-      } else {
-        // Add unquoted word
-        args.add(matcher.group());
-      }
-    }
-
-    return args.toArray(new String[args.size()]);
   }
 
   @Override
