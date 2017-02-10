@@ -6,7 +6,6 @@ import com.google.common.base.Preconditions;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.serializer.StringSerializer;
 
 import java.util.Set;
@@ -185,8 +184,10 @@ public class SimpleCvar<T> implements Cvar<T> {
       StringSerializer<T> castedSerializer = (StringSerializer<T>) serializer;
       T value = castedSerializer.deserialize(str);
       setValue(value);
+    } catch (RuntimeException e) {
+      throw e;
     } catch (Throwable t) {
-      throw new SerializeException(t);
+      throw new RuntimeException(t);
     }
   }
 
