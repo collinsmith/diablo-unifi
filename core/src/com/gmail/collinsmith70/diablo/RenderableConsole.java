@@ -174,10 +174,10 @@ public class RenderableConsole extends Console implements Disposable {
     final int clientWidth = client.width();
     final int clientHeight = client.height();
     final float textHeight = font.getCapHeight();
-    final int height = (int)(clientHeight * this.height);
-    final float y = clientHeight - height;
+    final int consoleHeight = (int)(clientHeight * this.height);
+    final float y = clientHeight - consoleHeight;
     final float bufferY = y + textHeight;
-    b.draw(modalBackgroundTexture, 0.0f, y - 4, clientWidth, height + 4);
+    b.draw(modalBackgroundTexture, 0.0f, y - 4, clientWidth, consoleHeight + 4);
     if (font == null) {
       return;
     }
@@ -192,7 +192,7 @@ public class RenderableConsole extends Console implements Disposable {
 
     final float lineHeight = font.getLineHeight();
     final float outputOffset = scrollOffset * textHeight;
-    final float outputHeight = height - lineHeight - textHeight;
+    final float outputHeight = consoleHeight - lineHeight - textHeight;
     if (outputOffset < outputHeight) {
       // offsets output to always appear that it starts at top of console window
       scrollOffsetMin = (int) (outputHeight / font.getCapHeight()) + 1;
