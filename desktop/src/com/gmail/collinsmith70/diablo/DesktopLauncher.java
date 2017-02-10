@@ -57,7 +57,7 @@ public class DesktopLauncher {
       config.allowSoftwareMode = cmd.hasOption("allowSoftwareMode");
     }
 
-    final Client client = new Client();
+    final Client client = new Client(config.width, config.height);
     if (cmd != null) {
       client.setWindowedForced(cmd.hasOption("w"));
       client.setDrawFpsForced(cmd.hasOption("fps"));
