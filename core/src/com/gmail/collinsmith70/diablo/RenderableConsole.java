@@ -27,7 +27,7 @@ public class RenderableConsole extends Console implements Disposable {
 
   private static final String TAG = "RenderableConsole";
 
-  private static final String BUFFER_PREFIX = ">";
+  private static final String BUFFER_PREFIX = "> ";
 
   private final Client client;
 
@@ -206,10 +206,10 @@ public class RenderableConsole extends Console implements Disposable {
     b.draw(modalBackgroundTexture, 0.0f, consoleY - 4, clientWidth, consoleHeight + 4);
 
     String bufferContents = getBufferContents();
-    GlyphLayout glyphs = font.draw(b, BUFFER_PREFIX + " " + bufferContents, 0, bufferY - 2);
+    GlyphLayout glyphs = font.draw(b, BUFFER_PREFIX + bufferContents, 0, bufferY - 2);
     b.draw(cursorTexture, 0, bufferY, clientWidth, 2);
     if (showCaret) {
-      glyphs.setText(font, BUFFER_PREFIX + " " + bufferContents.substring(0, getCaretPosition()));
+      glyphs.setText(font, BUFFER_PREFIX + bufferContents.substring(0, getCaretPosition()));
       b.draw(cursorTexture, glyphs.width, consoleY - 2, 2, textHeight);
     }
 
@@ -226,8 +226,7 @@ public class RenderableConsole extends Console implements Disposable {
       position += ((scrollOffsetMin - scrollOffset) * textHeight);
     }
 
-    for (ListIterator<String> it = OUTPUT.listIterator(scrollOffset);
-         it.hasPrevious();) {
+    for (ListIterator<String> it = OUTPUT.listIterator(scrollOffset); it.hasPrevious();) {
       if (position > clientHeight) {
         break;
       }
