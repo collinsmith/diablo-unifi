@@ -179,6 +179,15 @@ public class Console extends PrintStream implements InputProcessor {
   }
 
   /**
+   * Returns whether or not the buffer is empty.
+   *
+   * @return {@code true} if the buffer is empty, otherwise {@code false}
+   */
+  public boolean isBufferEmpty() {
+    return BUFFER.length() == 0;
+  }
+
+  /**
    * Returns the position of the caret (i.e., the position where modifications are being made).
    * {@code 0} represents the start, while {@link #getBufferLength()} represents the end.
    *
@@ -259,6 +268,8 @@ public class Console extends PrintStream implements InputProcessor {
           bufferModified();
         }
 
+        return true;
+      case '\t':
         return true;
       default:
         BUFFER.insert(caret++, ch);
@@ -392,6 +403,32 @@ public class Console extends PrintStream implements InputProcessor {
         caret = BUFFER.length();
         caretMoved();
         return true;
+      case Input.Keys.TAB:
+        boolean handled;
+        for (Processor l : COMMIT_PROCESSORS) {
+          CharSequence bufferWrapper = new CharSequence() {
+            @Override
+            public int length() {
+              return BUFFER.length();
+            }
+
+            @Override
+            public char charAt(int index) {
+              return BUFFER.charAt(index);
+            }
+
+            @Override
+            public CharSequence subSequence(int start, int end) {
+              return BUFFER.subSequence(start, end);
+            }
+          };
+          handled = l.hint(this, bufferWrapper);
+          if (handled) {
+            break;
+          }
+        }
+
+        return true;
     }
 
     return false;
@@ -441,7 +478,7 @@ public class Console extends PrintStream implements InputProcessor {
 
     boolean process(@NonNull Console console, @NonNull String buffer);
 
-    //boolean resolve(@NonNull String buffer);
+    boolean hint(@NonNull Console console, @NonNull CharSequence buffer);
 
     void onUnprocessed(@NonNull Console console, @NonNull String buffer);
 

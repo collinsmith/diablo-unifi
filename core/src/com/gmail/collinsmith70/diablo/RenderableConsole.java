@@ -272,8 +272,6 @@ public class RenderableConsole extends Console implements Disposable {
         }
 
         return true;
-      case Input.Keys.TAB:
-        return true;
       default:
         return super.keyDown(keycode);
     }

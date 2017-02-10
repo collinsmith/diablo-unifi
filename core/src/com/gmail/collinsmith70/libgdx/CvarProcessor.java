@@ -21,6 +21,11 @@ public class CvarProcessor implements Console.Processor {
   }
 
   @Override
+  public boolean hint(@NonNull Console console, @NonNull CharSequence buffer) {
+    return false;
+  }
+
+  @Override
   @SuppressWarnings({ "unchecked", "ConstantConditions" })
   public boolean process(@NonNull Console console, @NonNull String buffer) {
     String[] args = buffer.split("\\s+");

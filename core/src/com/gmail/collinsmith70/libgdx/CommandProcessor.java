@@ -1,5 +1,7 @@
 package com.gmail.collinsmith70.libgdx;
 
+import com.google.common.base.Strings;
+
 import android.support.annotation.NonNull;
 
 import com.badlogic.gdx.Gdx;
@@ -10,6 +12,8 @@ import com.gmail.collinsmith70.validator.ValidationException;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +28,45 @@ public class CommandProcessor implements Console.Processor {
 
   public CommandProcessor(@NonNull CommandManager commandManager) {
     this.COMMANDS = commandManager;
+  }
+
+  @Override
+  public boolean hint(@NonNull Console console, @NonNull CharSequence buffer) {
+    if (buffer.length() == 0) {
+      return false;
+    }
+
+    String[] args = parseArgs(buffer);
+    if (args.length == 0) {
+      return false;
+    }
+
+    SortedMap<String, Command> commands = COMMANDS.prefixMap(args[0]);
+    switch (commands.size()) {
+      case 0:
+        return false;
+      case 1:
+        console.setBuffer(commands.firstKey());
+        console.keyTyped(' ');
+        return true;
+      default:
+        int i = 0;
+        StringBuilder sb = new StringBuilder(64);
+        for (Iterator<String> it = commands.keySet().iterator(); it.hasNext();) {
+          String alias = it.next();
+          if (++i % 6 == 0) {
+            sb.append(alias);
+            sb.append('\n');
+          } else if (it.hasNext()) {
+            sb.append(Strings.padEnd(alias, 12, ' '));
+          } else {
+            sb.append(alias);
+          }
+        }
+
+        console.println(sb.toString());
+        return true;
+    }
   }
 
   @Override
@@ -50,7 +93,7 @@ public class CommandProcessor implements Console.Processor {
     return true;
   }
 
-  private String[] parseArgs(@NonNull String buffer) {
+  private String[] parseArgs(@NonNull CharSequence buffer) {
     String tmp;
     Collection<String> args = new ArrayList<>(8);
     Matcher matcher = PATTERN.matcher(buffer);
