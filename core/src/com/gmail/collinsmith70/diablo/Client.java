@@ -28,6 +28,8 @@ import com.gmail.collinsmith70.serializer.SerializeException;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
@@ -128,6 +130,10 @@ public class Client extends ApplicationAdapter {
   @Override
   public void create() {
     console.create();
+
+    Calendar calendar = Calendar.getInstance();
+    DateFormat format = DateFormat.getDateTimeInstance();
+    console.println(format.format(calendar.getTime()));
 
     this.commands = new GdxCommandManager();
     this.cvars = new GdxCvarManager();

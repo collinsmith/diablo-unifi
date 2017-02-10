@@ -17,9 +17,7 @@ import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.Console;
 
 import java.io.OutputStream;
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -149,10 +147,6 @@ public class RenderableConsole extends Console implements Disposable {
 
     clearBuffer();
     updateCaret();
-
-    Calendar calendar = Calendar.getInstance();
-    DateFormat format = DateFormat.getDateTimeInstance();
-    println(format.format(calendar.getTime()));
   }
 
   @Override
