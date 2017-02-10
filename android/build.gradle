@@ -1,6 +1,6 @@
 android {
     buildToolsVersion "23.0.2"
-    compileSdkVersion 22
+    compileSdkVersion 23
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
@@ -19,9 +19,8 @@ android {
     }
     defaultConfig {
         applicationId "com.gmail.collinsmith70.diablo"
-        // LocalSerializer requires 21, prev = 9
         minSdkVersion 9
-        targetSdkVersion 25
+        targetSdkVersion 22
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
