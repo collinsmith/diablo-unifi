@@ -186,6 +186,7 @@ public class Client extends ApplicationAdapter {
   public void resize(int width, int height) {
     this.width = width;
     this.height = height;
+    console.resize(width, height);
   }
 
   @Override
