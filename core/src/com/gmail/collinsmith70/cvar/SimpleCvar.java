@@ -180,7 +180,7 @@ public class SimpleCvar<T> implements Cvar<T> {
 
   @Override
   @SuppressWarnings("unchecked")
-  public final void setValue(@NonNull String str, @NonNull StringSerializer serializer) {
+  public void setValue(@NonNull String str, @NonNull StringSerializer serializer) {
     try {
       StringSerializer<T> castedSerializer = (StringSerializer<T>) serializer;
       T value = castedSerializer.deserialize(str);

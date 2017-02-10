@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.gmail.collinsmith70.serializer.StringSerializer;
 import com.gmail.collinsmith70.validator.Validatable;
 import com.gmail.collinsmith70.validator.ValidationException;
 import com.gmail.collinsmith70.validator.Validator;
@@ -88,6 +89,33 @@ public final class ValidatableCvar<T> extends SimpleCvar<T> implements Validatab
   public void setValue(@Nullable T value) {
     VALIDATOR.validate(value);
     super.setValue(value);
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Note: This operation will {@linkplain #isValid validate} the specified {@code value} and may
+   *       throw a {@link ValidationException} even if it is the
+   *       {@link #getDefaultValue default value} (i.e., {@code isValid(getDefaultValue())}
+   *       evaluates as {@code false}). If this is the case, and setting to the default value is
+   *       required, then use {@link #reset} instead.
+   *
+   * @throws ValidationException if {@code value} is {@linkplain #isValid not valid} according to
+   *     the {@linkplain Validator validator} used by this {@code ValidatableCvar}.
+   *
+   * @see #reset
+   */
+  @Override
+  public void setValue(@NonNull String str, @NonNull StringSerializer serializer) {
+    try {
+      StringSerializer<T> castedSerializer = (StringSerializer<T>) serializer;
+      T value = castedSerializer.deserialize(str);
+      setValue(value);
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Throwable t) {
+      throw new RuntimeException(t);
+    }
   }
 
   /**

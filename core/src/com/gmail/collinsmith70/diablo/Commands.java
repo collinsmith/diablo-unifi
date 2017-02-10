@@ -10,6 +10,7 @@ import com.gmail.collinsmith70.command.Parameter;
 import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.serializer.StringSerializer;
+import com.gmail.collinsmith70.validator.ValidationException;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -110,8 +111,11 @@ class Commands {
           try {
             cvar.setValue(value, serializer);
           } catch (SerializeException e) {
-            Diablo.client.console.println("Invalid value specified: \"%s\", Expected type: %s",
+            Diablo.client.console.println("Invalid value specified: \"%s\". Expected type: %s",
                 value, cvar.getType().getName());
+          } catch (ValidationException e) {
+            Diablo.client.console.println("Invalid value specified: \"%s\". %s",
+                value, e.getMessage());
           }
         }
       }, Parameter.of(Cvar.class), Parameter.of(String.class));
