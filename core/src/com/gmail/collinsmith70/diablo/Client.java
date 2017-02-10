@@ -19,7 +19,6 @@ import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.CommandProcessor;
 import com.gmail.collinsmith70.libgdx.Console;
-import com.gmail.collinsmith70.libgdx.CvarProcessor;
 import com.gmail.collinsmith70.libgdx.GdxCommandManager;
 import com.gmail.collinsmith70.libgdx.GdxCvarManager;
 import com.gmail.collinsmith70.libgdx.GdxKeyMapper;
@@ -166,7 +165,7 @@ public class Client extends ApplicationAdapter {
             Commands.help.getAlias());
       }
     });
-    console.addProcessor(new CvarProcessor(cvars));
+    //console.addProcessor(new CvarProcessor(cvars));
 
     setupCvars();
 

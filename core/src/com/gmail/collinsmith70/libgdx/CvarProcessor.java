@@ -7,6 +7,7 @@ import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.serializer.StringSerializer;
 
+@Deprecated
 public class CvarProcessor implements Console.Processor {
 
   @NonNull
