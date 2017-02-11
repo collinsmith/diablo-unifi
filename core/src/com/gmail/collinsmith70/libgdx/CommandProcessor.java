@@ -13,6 +13,7 @@ import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.validator.ValidationException;
 
 import java.util.Iterator;
+import java.util.Set;
 import java.util.SortedMap;
 
 import static com.gmail.collinsmith70.util.StringUtils.parseArgs;
@@ -56,7 +57,8 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
       return suggestionsProvided;
     }
 
-    SortedMap<String, Command> commands = COMMANDS.prefixMap(args[0]);
+    String arg = args[0];
+    SortedMap<String, Command> commands = COMMANDS.prefixMap(arg);
     switch (commands.size()) {
       case 0:
         return 0;
@@ -65,27 +67,41 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
         console.keyTyped(' ');
         return 1;
       default:
-        /*for (String alias : commands.keySet()) {
-          console.println(alias);
-        }*/
+        final Set<String> commandAliases = commands.keySet();
 
-        int i = 0;
-        StringBuilder sb = new StringBuilder(64);
-        for (Iterator<String> it = commands.keySet().iterator(); it.hasNext();) {
-          String alias = it.next();
-          if (++i % 6 == 0) {
-            sb.append(alias);
-            console.println(sb.toString());
-            sb.setLength(0);
-          } else if (it.hasNext()) {
-            sb.append(Strings.padEnd(alias, 12, ' '));
+        String commonPrefix = null;
+        for (String alias : commandAliases) {
+          if (commonPrefix == null) {
+            commonPrefix = alias;
+          } else if (commonPrefix.isEmpty()) {
+            break;
           } else {
-            sb.append(alias);
+            commonPrefix = Strings.commonPrefix(commonPrefix, alias);
           }
         }
 
-        if (sb.length() > 0) {
-          console.println(sb.toString());
+        if (commonPrefix != null && commonPrefix.length() > arg.length()) {
+          String append = commonPrefix.substring(arg.length());
+          console.appendToBuffer(append);
+        } else {
+          int i = 0;
+          StringBuilder sb = new StringBuilder(64);
+          for (Iterator<String> it = commandAliases.iterator(); it.hasNext(); ) {
+            String alias = it.next();
+            if (++i % 6 == 0) {
+              sb.append(alias);
+              console.println(sb.toString());
+              sb.setLength(0);
+            } else if (it.hasNext()) {
+              sb.append(Strings.padEnd(alias, 12, ' '));
+            } else {
+              sb.append(alias);
+            }
+          }
+
+          if (sb.length() > 0) {
+            console.println(sb.toString());
+          }
         }
 
         return commands.size();

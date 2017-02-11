@@ -42,15 +42,10 @@ public enum CvarSuggester implements Console.SuggestionProvider {
           }
         }
 
-        console.println("commonPrefix=" + commonPrefix);
         if (commonPrefix != null && commonPrefix.length() > arg.length()) {
           append = commonPrefix.substring(arg.length());
           console.appendToBuffer(append);
         } else {
-          /*for (Cvar cvar : cvars) {
-            console.println(cvar.getAlias());
-          }*/
-
           int i = 0;
           StringBuilder sb = new StringBuilder(64);
           for (Iterator<Cvar> it = cvars.iterator(); it.hasNext(); ) {
