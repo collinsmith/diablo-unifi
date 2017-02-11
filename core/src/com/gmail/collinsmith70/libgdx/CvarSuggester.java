@@ -8,6 +8,7 @@ import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.diablo.Diablo;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 public enum CvarSuggester implements Console.SuggestionProvider {
   INSTANCE;
@@ -41,12 +42,33 @@ public enum CvarSuggester implements Console.SuggestionProvider {
           }
         }
 
-        if (commonPrefix != null && !commonPrefix.isEmpty()) {
+        console.println("commonPrefix=" + commonPrefix);
+        if (commonPrefix != null && commonPrefix.length() > arg.length()) {
           append = commonPrefix.substring(arg.length());
           console.appendToBuffer(append);
         } else {
-          for (Cvar cvar : cvars) {
+          /*for (Cvar cvar : cvars) {
             console.println(cvar.getAlias());
+          }*/
+
+          int i = 0;
+          StringBuilder sb = new StringBuilder(64);
+          for (Iterator<Cvar> it = cvars.iterator(); it.hasNext(); ) {
+            Cvar cvar = it.next();
+            String alias = cvar.getAlias();
+            if (++i % 4 == 0) {
+              sb.append(alias);
+              console.println(sb.toString());
+              sb.setLength(0);
+            } else if (it.hasNext()) {
+              sb.append(Strings.padEnd(alias, 36, ' '));
+            } else {
+              sb.append(alias);
+            }
+          }
+
+          if (sb.length() > 0) {
+            console.println(sb.toString());
           }
         }
 

@@ -1,5 +1,7 @@
 package com.gmail.collinsmith70.libgdx;
 
+import com.google.common.base.Strings;
+
 import android.support.annotation.NonNull;
 
 import com.badlogic.gdx.Gdx;
@@ -10,6 +12,7 @@ import com.gmail.collinsmith70.command.ParameterException;
 import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.validator.ValidationException;
 
+import java.util.Iterator;
 import java.util.SortedMap;
 
 import static com.gmail.collinsmith70.util.StringUtils.parseArgs;
@@ -62,11 +65,11 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
         console.keyTyped(' ');
         return 1;
       default:
-        for (String alias : commands.keySet()) {
+        /*for (String alias : commands.keySet()) {
           console.println(alias);
-        }
+        }*/
 
-        /*int i = 0;
+        int i = 0;
         StringBuilder sb = new StringBuilder(64);
         for (Iterator<String> it = commands.keySet().iterator(); it.hasNext();) {
           String alias = it.next();
@@ -83,7 +86,7 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
 
         if (sb.length() > 0) {
           console.println(sb.toString());
-        }*/
+        }
 
         return commands.size();
     }
