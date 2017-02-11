@@ -1,13 +1,13 @@
 package com.gmail.collinsmith70.validator;
 
-import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 /**
  * A {@link Validator} which is designed to validate that an object lies between some arbitrary
- * {@linkplain #getMin() minimum} and {@linkplain #getMax() maximum}
+ * {@linkplain #getMin() minimum} and {@linkplain #getMax() maximum}. If either the minimum or
+ * maximum bounds are {@code null}, then this implies that there is no bound for that limit.
  *
- * @param <T> The type of object which this {@linkplain RangeValidator} is specifically designed to
- *            validate
+ * @param <T> The type of object which this {@linkplain RangeValidator} validates
  */
 @SuppressWarnings("unused")
 public interface RangeValidator<T extends Comparable<? super T>> extends Validator {
@@ -17,7 +17,7 @@ public interface RangeValidator<T extends Comparable<? super T>> extends Validat
    *
    * @return The minimum accepted value
    */
-  @NonNull
+  @Nullable
   T getMin();
 
   /**
@@ -25,7 +25,7 @@ public interface RangeValidator<T extends Comparable<? super T>> extends Validat
    *
    * @return The maximum accepted value
    */
-  @NonNull
+  @Nullable
   T getMax();
 
 }

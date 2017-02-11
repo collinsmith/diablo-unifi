@@ -1,8 +1,5 @@
 package com.gmail.collinsmith70.validator;
 
-import com.google.common.base.Preconditions;
-
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 /**
@@ -43,10 +40,20 @@ public class RangeValidationException extends ValidationException {
    * @param min The minimum value of the {@link RangeValidator}
    * @param max The maximum value of the {@link RangeValidator}
    */
-  public RangeValidationException(@NonNull Object min, @NonNull Object max) {
-    super(String.format("Value must lie between %s and %s (inclusive)", min, max));
-    this.MIN = Preconditions.checkNotNull(min);
-    this.MAX = Preconditions.checkNotNull(max);
+  public RangeValidationException(@Nullable Object min, @Nullable Object max) {
+    super(formatMessage(min, max));
+    this.MIN = min;
+    this.MAX = max;
+  }
+
+  private static String formatMessage(@Nullable Object min, @Nullable Object max) {
+    if (min == null && max != null) {
+      return String.format("Value must be less than or equal to %s", max);
+    } else if (min != null && max == null) {
+      return String.format("Value must be greater than or equal to %s", min);
+    } else {
+      return String.format("Value must be between %s and %s (inclusive)", min, max);
+    }
   }
 
   /**

@@ -14,16 +14,13 @@ import android.support.annotation.Nullable;
 public class NumberRangeValidator<T extends Number & Comparable<? super T>>
         implements RangeValidator<T> {
 
-  /**
-   * Minimum value
-   */
   @NonNull
+  private Class<T> TYPE;
+
+  @Nullable
   private final T MIN;
 
-  /**
-   * Maximum value
-   */
-  @NonNull
+  @Nullable
   private final T MAX;
 
   /**
@@ -33,19 +30,20 @@ public class NumberRangeValidator<T extends Number & Comparable<? super T>>
    * @param min The minimum value of the {@code NumberRangeValidator}
    * @param max The maximum value of the {@code NumberRangeValidator}
    */
-  public NumberRangeValidator(@NonNull T min, @NonNull T max) {
-    this.MIN = Preconditions.checkNotNull(min);
-    this.MAX = Preconditions.checkNotNull(max);
+  public NumberRangeValidator(@NonNull Class<T> type, @Nullable T min, @Nullable T max) {
+    this.TYPE = Preconditions.checkNotNull(type);
+    this.MIN = min;
+    this.MAX = max;
   }
 
   @Override
-  @NonNull
+  @Nullable
   public T getMin() {
     return MIN;
   }
 
   @Override
-  @NonNull
+  @Nullable
   public T getMax() {
     return MAX;
   }
@@ -74,13 +72,14 @@ public class NumberRangeValidator<T extends Number & Comparable<? super T>>
       throw new ValidationException("passed reference cannot be null");
     }
 
-    if (!MIN.getClass().isAssignableFrom(obj.getClass())) {
+    if (!TYPE.isAssignableFrom(obj.getClass())) {
       throw new ValidationException(
-              "passed reference is not a subclass of " + MIN.getClass().getName());
+              obj.toString() + " is not a subclass of " + TYPE.getName());
     }
 
     T castedObj = (T) obj;
-    if (MIN.compareTo(castedObj) > 0 || MAX.compareTo(castedObj) < 0) {
+    if ((MIN != null && MIN.compareTo(castedObj) > 0)
+        || (MAX != null && MAX.compareTo(castedObj) < 0)) {
       throw new RangeValidationException(MIN, MAX);
     }
   }
