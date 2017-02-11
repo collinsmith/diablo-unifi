@@ -103,7 +103,7 @@ class Commands {
 
           Diablo.client.console.println("%s = %s", cvar.getAlias(), cvar.getValue());
         }
-      }, Parameter.of(Cvar.class).processor(CvarSuggester.INSTANCE));
+      }, Parameter.of(Cvar.class).suggester(CvarSuggester.INSTANCE));
 
   public static final Command set = new Command("set", "Sets the value of the specified cvar",
       new Action() {
@@ -127,6 +127,6 @@ class Commands {
                 value, e.getMessage());
           }
         }
-      }, Parameter.of(Cvar.class).processor(CvarSuggester.INSTANCE), Parameter.of(String.class));
+      }, Parameter.of(Cvar.class).suggester(CvarSuggester.INSTANCE), Parameter.of(String.class));
 
 }

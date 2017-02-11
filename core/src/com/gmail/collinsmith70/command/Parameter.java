@@ -45,7 +45,7 @@ public class Parameter<T> implements StringSerializer<T>, Validator, Console.Sug
   }
 
   @NonNull
-  public Parameter<T> processor(@NonNull Console.SuggestionProvider suggestionProvider) {
+  public Parameter<T> suggester(@NonNull Console.SuggestionProvider suggestionProvider) {
     this.suggestionProvider
         = Preconditions.checkNotNull(suggestionProvider, "suggestionProvider cannot be null");
     return this;

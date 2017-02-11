@@ -30,8 +30,8 @@ public class OptionalParameter<T> extends Parameter<T> {
   }
 
   @NonNull
-  public OptionalParameter<T> processor(@NonNull Console.SuggestionProvider suggestionProvider) {
-    super.processor(suggestionProvider);
+  public OptionalParameter<T> suggester(@NonNull Console.SuggestionProvider suggestionProvider) {
+    super.suggester(suggestionProvider);
     return this;
   }
 

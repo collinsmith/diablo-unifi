@@ -5,7 +5,6 @@ import com.gmail.collinsmith70.cvar.CvarManager;
 import com.gmail.collinsmith70.cvar.ValidatableCvar;
 import com.gmail.collinsmith70.validator.NonNullSubclassValidator;
 import com.gmail.collinsmith70.validator.NumberRangeValidator;
-import com.gmail.collinsmith70.validator.Validator;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -71,7 +70,7 @@ public class Cvars {
           "Font for the in-game console output stream",
           String.class,
           "default.fnt",
-          Validator.ACCEPT_NON_NULL_NON_EMPTY_STRING);
+          GdxFileValidator.INTERNAL);
 
       public static final Cvar<Float> Height = new ValidatableCvar<>(
           "Client.Console.Height",
