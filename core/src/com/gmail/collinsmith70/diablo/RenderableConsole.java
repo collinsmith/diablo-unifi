@@ -211,8 +211,11 @@ public class RenderableConsole extends Console implements Disposable {
     GlyphLayout glyphs = font.draw(b, BUFFER_PREFIX + bufferContents, x, bufferY - 2);
     b.draw(cursorTexture, x, bufferY, clientWidth, 2);
     if (showCaret) {
-      glyphs.setText(font, BUFFER_PREFIX + bufferContents.substring(0, getCaretPosition()));
-      b.draw(cursorTexture, glyphs.width, consoleY - 2, 2, textHeight);
+      if (getCaretPosition() != getBufferLength()) {
+        glyphs.setText(font, BUFFER_PREFIX + bufferContents.substring(0, getCaretPosition()));
+      }
+
+      b.draw(cursorTexture, x + glyphs.width, consoleY - 2, 2, textHeight);
     }
 
     final float outputOffset = scrollOffset * lineHeight;
