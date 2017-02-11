@@ -2,6 +2,7 @@ package com.gmail.collinsmith70.libgdx;
 
 import com.google.common.base.Preconditions;
 
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -114,6 +115,32 @@ public class Console extends PrintStream implements InputProcessor {
     Preconditions.checkArgument(charSequence != null, "charSequence cannot be null");
     BUFFER.setLength(0);
     BUFFER.append(charSequence);
+    caret = BUFFER.length();
+    bufferModified();
+  }
+
+  /**
+   * Appends the specified {@code charSequence} to the end of the buffer and sets the caret position
+   * to the end.
+   *
+   * @param charSequence The {@code CharSequence} to write
+   */
+  public void appendToBuffer(@NonNull CharSequence charSequence) {
+    if (charSequence.length() > 0) {
+      BUFFER.append(charSequence);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+  }
+
+  /**
+   * Appends the specified char {@code ch} to the end of the buffer and sets the caret position
+   * to the end.
+   *
+   * @param ch The {@code char} to write
+   */
+  public void appendToBuffer(char ch) {
+    BUFFER.append(ch);
     caret = BUFFER.length();
     bufferModified();
   }
@@ -418,7 +445,7 @@ public class Console extends PrintStream implements InputProcessor {
           }
         };
         for (SuggestionProvider l : SUGGESTION_PROVIDERS) {
-          handled = l.suggest(this, bufferWrapper, args);
+          handled = l.suggest(this, bufferWrapper, args) > 0;
           if (handled) {
             break;
           }
@@ -470,7 +497,8 @@ public class Console extends PrintStream implements InputProcessor {
 
   public interface SuggestionProvider {
 
-    boolean suggest(@NonNull Console console, @NonNull CharSequence buffer, @NonNull String[] args);
+    @IntRange(from = 0)
+    int suggest(@NonNull Console console, @NonNull CharSequence buffer, @NonNull String[] args);
 
   }
 

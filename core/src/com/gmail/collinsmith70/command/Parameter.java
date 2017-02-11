@@ -112,7 +112,7 @@ public class Parameter<T> implements StringSerializer<T>, Validator, Console.Sug
   }
 
   @Override
-  public boolean suggest(@NonNull Console console, @NonNull CharSequence buffer,
+  public int suggest(@NonNull Console console, @NonNull CharSequence buffer,
                          @NonNull String[] args) {
     if (suggestionProvider == null) {
       throw new UnsupportedOperationException(this + " cannot process console input");

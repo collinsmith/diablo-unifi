@@ -26,36 +26,41 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
   }
 
   @Override
-  public boolean suggest(@NonNull Console console, @NonNull CharSequence buffer,
+  public int suggest(@NonNull Console console, @NonNull CharSequence buffer,
                          @NonNull String[] args) {
     if (buffer.length() == 0) {
-      return false;
+      return 0;
     }
 
     if (args.length == 0) {
-      return false;
+      return 0;
     } else if (args.length > 1) {
       Command command = COMMANDS.get(args[0]);
       if (command == null) {
-        return false;
+        return 0;
       }
 
       Parameter param = command.getParam(args.length - 2);
       if (!param.canSuggest()) {
-        return false;
+        return 0;
       }
 
-      return param.suggest(console, buffer, args);
+      int suggestionsProvided = param.suggest(console, buffer, args);
+      if (suggestionsProvided == 1) {
+        console.appendToBuffer(' ');
+      }
+
+      return suggestionsProvided;
     }
 
     SortedMap<String, Command> commands = COMMANDS.prefixMap(args[0]);
     switch (commands.size()) {
       case 0:
-        return false;
+        return 0;
       case 1:
         console.setBuffer(commands.firstKey());
         console.keyTyped(' ');
-        return true;
+        return 1;
       default:
         for (String alias : commands.keySet()) {
           console.println(alias);
@@ -80,7 +85,7 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
           console.println(sb.toString());
         }*/
 
-        return true;
+        return commands.size();
     }
   }
 

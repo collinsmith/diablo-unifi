@@ -161,7 +161,7 @@ public class Client extends ApplicationAdapter {
       Keys.Console.assign(MappedKey.SECONDARY, Input.Keys.MENU);
     }
 
-    console.addProcessor(new CommandProcessor(commands) {
+    CommandProcessor processor = new CommandProcessor(commands) {
       @Override
       public void onUnprocessed(@NonNull Console console, @NonNull String buffer) {
         super.onUnprocessed(console, buffer);
@@ -170,8 +170,9 @@ public class Client extends ApplicationAdapter {
             buffer,
             Commands.help.getAlias());
       }
-    });
-    //console.addProcessor(new CvarSuggestor(cvars));
+    };
+    console.addProcessor(processor);
+    console.addSuggestionProvider(processor);
 
     setupCvars();
 
