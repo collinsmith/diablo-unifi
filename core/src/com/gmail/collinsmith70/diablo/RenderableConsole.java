@@ -27,7 +27,7 @@ public class RenderableConsole extends Console implements Disposable {
 
   private static final String TAG = "RenderableConsole";
 
-  private static final String BUFFER_PREFIX = "> ";
+  private static final String BUFFER_PREFIX = ">";
 
   private final Client client;
 
@@ -56,6 +56,7 @@ public class RenderableConsole extends Console implements Disposable {
 
   private int clientWidth, clientHeight;
   private float textHeight;
+  private float lineHeight;
   private int consoleHeight;
   private float outputHeight;
   private float consoleY;
@@ -69,14 +70,14 @@ public class RenderableConsole extends Console implements Disposable {
 
     this.clientWidth = client.width();
     this.clientHeight = client.height();
-    float lineHeight = font.getLineHeight();
+    this.lineHeight = font.getLineHeight();
     this.textHeight = font.getCapHeight();
     this.consoleHeight = (int) (clientHeight * this.height);
     this.consoleY = clientHeight - consoleHeight;
     this.bufferY = consoleY + textHeight;
     this.outputY = bufferY + lineHeight;
     this.outputHeight = consoleHeight - lineHeight - textHeight;
-    this.scrollOffsetMin = (int) (outputHeight / textHeight) + 1;
+    this.scrollOffsetMin = (int) (outputHeight / lineHeight) + 1;
     this.scrollOffset = Math.max(scrollOffset, scrollOffsetMin);
   }
 
@@ -205,15 +206,16 @@ public class RenderableConsole extends Console implements Disposable {
 
     b.draw(modalBackgroundTexture, 0.0f, consoleY - 4, clientWidth, consoleHeight + 4);
 
+    final int x = 2;
     String bufferContents = getBufferContents();
-    GlyphLayout glyphs = font.draw(b, BUFFER_PREFIX + bufferContents, 0, bufferY - 2);
-    b.draw(cursorTexture, 0, bufferY, clientWidth, 2);
+    GlyphLayout glyphs = font.draw(b, BUFFER_PREFIX + bufferContents, x, bufferY - 2);
+    b.draw(cursorTexture, x, bufferY, clientWidth, 2);
     if (showCaret) {
       glyphs.setText(font, BUFFER_PREFIX + bufferContents.substring(0, getCaretPosition()));
       b.draw(cursorTexture, glyphs.width, consoleY - 2, 2, textHeight);
     }
 
-    final float outputOffset = scrollOffset * textHeight;
+    final float outputOffset = scrollOffset * lineHeight;
     if (outputOffset < outputHeight) {
       // offsets output to always appear that it starts at top of console window
       scrollOffset = Math.max(scrollOffset, scrollOffsetMin);
@@ -223,7 +225,7 @@ public class RenderableConsole extends Console implements Disposable {
     final int outputSize = OUTPUT.size();
     if (scrollOffset > outputSize) {
       scrollOffset = outputSize;
-      position += ((scrollOffsetMin - scrollOffset) * textHeight);
+      position += ((scrollOffsetMin - scrollOffset) * lineHeight);
     }
 
     for (ListIterator<String> it = OUTPUT.listIterator(scrollOffset); it.hasPrevious();) {
@@ -232,8 +234,8 @@ public class RenderableConsole extends Console implements Disposable {
       }
 
       String line = it.previous();
-      font.draw(b, line, 0.0f, position);
-      position += textHeight;
+      font.draw(b, line, x, position);
+      position += lineHeight;
     }
   }
 
