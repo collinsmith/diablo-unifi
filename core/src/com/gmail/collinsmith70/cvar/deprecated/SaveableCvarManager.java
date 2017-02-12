@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * instances which can be used to (de)serialize them for saving/loading.
  */
 @SuppressWarnings({ "SameParameterValue", "WeakerAccess", "unused", "ConstantConditions" })
+@Deprecated
 public abstract class SaveableCvarManager extends com.gmail.collinsmith70.cvar.CvarManager {
 
   /**

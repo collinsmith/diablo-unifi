@@ -11,6 +11,7 @@ import android.support.annotation.Nullable;
  * @param <T> {@linkplain Class type} of the {@linkplain com.gmail.collinsmith70.cvar.Cvar#getValue variable} which the
  *            {@link com.gmail.collinsmith70.cvar.Cvar} represents
  */
+@Deprecated
 public abstract class SimpleCvarStateAdapter<T> implements com.gmail.collinsmith70.cvar.Cvar.StateListener<T> {
 
   /**

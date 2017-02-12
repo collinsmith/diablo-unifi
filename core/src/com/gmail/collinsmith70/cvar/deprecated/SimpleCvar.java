@@ -17,6 +17,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @param <T> {@inheritDoc}
  */
 @SuppressWarnings("ConstantConditions")
+@Deprecated
 public class SimpleCvar<T> implements com.gmail.collinsmith70.cvar.Cvar<T> {
 
   /**

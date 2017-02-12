@@ -18,6 +18,7 @@ import com.gmail.collinsmith70.validator.Validator;
  *            {@code SimpleCvar} represents
  */
 @SuppressWarnings("ConstantConditions")
+@Deprecated
 public final class ValidatableCvar<T> extends com.gmail.collinsmith70.cvar.SimpleCvar<T> implements Validatable {
 
   /**

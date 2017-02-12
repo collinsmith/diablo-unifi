@@ -27,6 +27,7 @@ import java.util.Iterator;
  * </ul>
  */
 @SuppressWarnings({ "unused", "SimplifiableIfStatement" })
+@Deprecated
 public class CvarManager implements com.gmail.collinsmith70.cvar.Cvar.StateListener, Iterable<com.gmail.collinsmith70.cvar.Cvar> {
 
   /**
