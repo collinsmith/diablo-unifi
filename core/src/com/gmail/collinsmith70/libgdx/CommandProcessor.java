@@ -45,7 +45,8 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
             // check if current command is completed (' ' after it)
             char ch = buffer.charAt(buffer.length() - 1);
             if (ch == ' ') {
-              return 0;
+              // break into default (i.e., the command alias is complete, handle args)
+              break;
             }
 
             String alias = commands.firstKey();
@@ -84,6 +85,7 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
           return 0;
         }
 
+        // apply args[] offset (targetParam is represented by args[targetParam + 1])
         int suggestions = param.suggest(console, buffer, args, targetParam + 1);
         if (suggestions == 1) {
           console.buffer.append(' ');

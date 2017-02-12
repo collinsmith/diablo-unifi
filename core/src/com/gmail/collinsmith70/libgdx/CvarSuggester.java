@@ -1,15 +1,15 @@
 package com.gmail.collinsmith70.libgdx;
 
-import com.google.common.base.Strings;
-
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
 import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.diablo.Diablo;
+import com.gmail.collinsmith70.libgdx.util.ConsoleUtils;
+import com.gmail.collinsmith70.util.StringUtils;
 
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.Set;
+import java.util.SortedMap;
 
 public enum CvarSuggester implements Console.SuggestionProvider {
   INSTANCE;
@@ -17,58 +17,25 @@ public enum CvarSuggester implements Console.SuggestionProvider {
   @Override
   public int suggest(@NonNull Console console, @NonNull CharSequence buffer,
                      @NonNull String[] args, @IntRange(from = 0) int targetArg) {
-    if (buffer.length() == 0) {
-      return 0;
-    }/* else if (buffer.charAt(buffer.length() - 1) == ' ') {
-      return 0;
-    }*/
-
     String arg = targetArg == args.length ? "" : args[targetArg];
-    Collection<Cvar> cvars = Diablo.client.cvars().prefixMap(arg).values();
+    SortedMap<String, Cvar> cvars = Diablo.client.cvars().prefixMap(arg);
     switch (cvars.size()) {
       case 0:
         return 0;
       case 1:
-        Cvar singleCvar = cvars.iterator().next();
-        console.buffer.append(singleCvar.getAlias(), arg.length());
+        String alias = cvars.firstKey();
+        console.buffer.append(alias, arg.length());
         return 1;
       default:
-        String commonPrefix = null;
-        for (Cvar cvar : cvars) {
-          if (commonPrefix == null) {
-            commonPrefix = cvar.getAlias();
-          } else if (commonPrefix.isEmpty()) {
-            break;
-          } else {
-            commonPrefix = Strings.commonPrefix(commonPrefix, cvar.getAlias());
-          }
-        }
-
-        if (commonPrefix != null && commonPrefix.length() > arg.length()) {
+        Set<String> aliases = cvars.keySet();
+        String commonPrefix = StringUtils.commonPrefix(aliases);
+        if (commonPrefix.length() > arg.length()) {
           console.buffer.append(commonPrefix, arg.length());
         } else {
-          int i = 0;
-          StringBuilder sb = new StringBuilder(64);
-          for (Iterator<Cvar> it = cvars.iterator(); it.hasNext(); ) {
-            Cvar cvar = it.next();
-            String alias = cvar.getAlias();
-            if (++i % 4 == 0) {
-              sb.append(alias);
-              console.println(sb.toString());
-              sb.setLength(0);
-            } else if (it.hasNext()) {
-              sb.append(Strings.padEnd(alias, 36, ' '));
-            } else {
-              sb.append(alias);
-            }
-          }
-
-          if (sb.length() > 0) {
-            console.println(sb.toString());
-          }
+          ConsoleUtils.printList(console, aliases, 4, 36);
         }
 
-        return cvars.size();
+        return aliases.size();
     }
   }
 }
