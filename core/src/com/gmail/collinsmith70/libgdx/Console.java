@@ -26,12 +26,6 @@ public class Console extends PrintStream implements InputProcessor {
   private static final int INITIAL_BUFFER_CAPACITY = 128;
 
   /**
-   * PrintStream propagators.
-   */
-  @NonNull
-  private final Set<PrintStreamListener> STREAM_LISTENERS;
-
-  /**
    * Listeners for buffer events (e.g., modification, committing, flushing).
    */
   @NonNull
@@ -64,26 +58,10 @@ public class Console extends PrintStream implements InputProcessor {
    */
   public Console(@NonNull OutputStream out) {
     super(out, true);
-    this.STREAM_LISTENERS = new CopyOnWriteArraySet<>();
     this.SUGGESTION_PROVIDERS = new CopyOnWriteArraySet<>();
     this.COMMIT_PROCESSORS = new CopyOnWriteArraySet<>();
     this.BUFFER = new StringBuffer(INITIAL_BUFFER_CAPACITY);
     this.buffer = new BufferOp();
-  }
-
-  /**
-   * Propagates the specified string {@code str} to the underlying PrintStream of this console
-   * instance and propagates {@code str} to the current PrintStreamListener instances attached
-   * to this console.
-   *
-   * @param str The message to output
-   */
-  @Override
-  public void println(@NonNull String str) {
-    super.println(str);
-    for (PrintStreamListener l : STREAM_LISTENERS) {
-      l.onPrintln(str);
-    }
   }
 
   /**
@@ -297,42 +275,6 @@ public class Console extends PrintStream implements InputProcessor {
    */
   public boolean containsProcessor(@Nullable Processor l) {
     return COMMIT_PROCESSORS.contains(l);
-  }
-
-  /**
-   * Adds a PrintStreamListener to receive {@link PrintStream#println(String)} events from the
-   * proxied PrintStream.
-   *
-   * @param l PrintStreamListener to add
-   *
-   * @return {@code true} if the specified PrintStreamListener was added, otherwise {@code false}
-   */
-  public boolean addPrintStreamListener(@NonNull PrintStreamListener l) {
-    Validate.isTrue(l != null);
-    return STREAM_LISTENERS.add(l);
-  }
-
-  /**
-   * Removes the specified PrintStreamListener.
-   *
-   * @param l PrintStreamListener to remove
-   *
-   * @return {@code true} if the specified PrintStreamListener was removed, otherwise {@code false}
-   */
-  public boolean removePrintStreamListener(@Nullable PrintStreamListener l) {
-    return STREAM_LISTENERS.remove(l);
-  }
-
-  /**
-   * Checks whether or not a specified PrintStreamListener will receive buffer events.
-   *
-   * @param l PrintStreamListener to check
-   *
-   * @return {@code true} if the specified PrintStreamListener will receive buffer events, otherwise
-   *         {@code false}
-   */
-  public boolean containsPrintStreamListener(@Nullable PrintStreamListener l) {
-    return STREAM_LISTENERS.contains(l);
   }
 
   @Override
@@ -722,12 +664,6 @@ public class Console extends PrintStream implements InputProcessor {
     @IntRange(from = 0)
     int suggest(@NonNull Console console, @NonNull CharSequence buffer,
                 @NonNull String[] args, @IntRange(from = 0) int arg);
-
-  }
-
-  public interface PrintStreamListener {
-
-    void onPrintln(@NonNull CharSequence s);
 
   }
 }
