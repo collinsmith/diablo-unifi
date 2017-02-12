@@ -39,7 +39,7 @@ public enum CvarValueSuggester implements Console.SuggestionProvider {
         if (commonPrefix.length() > arg.length()) {
           console.buffer.append(commonPrefix, arg.length());
         } else {
-          ConsoleUtils.printList(console, suggestions, 4, 32);
+          ConsoleUtils.printList(console, suggestions, 6, 20);
         }
 
         return suggestions.size();
