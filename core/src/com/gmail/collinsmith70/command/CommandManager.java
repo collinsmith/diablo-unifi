@@ -25,20 +25,12 @@ public class CommandManager implements Command.AssignmentListener {
   }
 
   @NonNull
-  public Command create(@NonNull String alias, @NonNull String description,
-                        @Nullable Action action, @Nullable Parameter... params) {
-    Command command = new Command(alias, description, action, params);
-    add(command);
-    return command;
-  }
-
-  @NonNull
   public Collection<Command> getCommands() {
     return new HashSet<>(COMMANDS.values());
   }
 
   public boolean add(@NonNull Command command) {
-    final Command queriedCommand = COMMANDS.get(command.getAlias());
+    final Command queriedCommand = COMMANDS.get(command.ALIAS);
     if (Objects.equal(command, queriedCommand)) {
       return false;
     } else if (queriedCommand != null) {
@@ -47,11 +39,13 @@ public class CommandManager implements Command.AssignmentListener {
           command.getAlias()));
     }
 
-    for (String alias : command.ALIASES) {
-      if (COMMANDS.containsKey(alias)) {
-        throw new DuplicateCommandException(command, String.format(
-            "A command with the alias %s is already registered. Command aliases must be unique!",
-            alias));
+    if (command.aliases != null) {
+      for (String alias : command.aliases) {
+        if (COMMANDS.containsKey(alias)) {
+          throw new DuplicateCommandException(command, String.format(
+              "A command with the alias %s is already registered. Aliases must be unique!",
+              alias));
+        }
       }
     }
 
@@ -69,13 +63,13 @@ public class CommandManager implements Command.AssignmentListener {
   }
 
   private boolean unassign(@NonNull String alias) {
-    Preconditions.checkArgument(alias != null, "alias cannot be null");
+    Preconditions.checkArgument(alias != null, "Aliases cannot be null");
     return COMMANDS.remove(alias) != null;
   }
 
   private boolean unassign(@NonNull Command command, @NonNull String alias) {
-    Preconditions.checkArgument(command != null, "command cannot be null");
-    Preconditions.checkArgument(alias != null, "alias cannot be null");
+    Preconditions.checkArgument(command != null, "Commands cannot be null");
+    Preconditions.checkArgument(alias != null, "Aliases cannot be null");
     Command queriedCommand = COMMANDS.get(alias);
     if (Objects.equal(queriedCommand, command)) {
       COMMANDS.remove(alias);
@@ -90,7 +84,7 @@ public class CommandManager implements Command.AssignmentListener {
     }
 
     boolean unassigned = false;
-    for (String alias : command.ALIASES) {
+    for (String alias : command.aliases) {
       unassigned = unassigned || unassign(command, alias);
     }
 

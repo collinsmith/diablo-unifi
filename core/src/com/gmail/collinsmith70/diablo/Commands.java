@@ -10,6 +10,7 @@ import com.gmail.collinsmith70.command.Parameter;
 import com.gmail.collinsmith70.command.ParameterException;
 import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.libgdx.CvarSuggester;
+import com.gmail.collinsmith70.libgdx.CvarValueSuggester;
 import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.serializer.StringSerializer;
 import com.gmail.collinsmith70.validator.ValidationException;
@@ -48,8 +49,10 @@ class Commands {
   private Commands() {
   }
 
-  public static final Command help = new Command("help", "Displays this message",
-      new Action() {
+  public static final Command help = Command.builder()
+      .alias("help").alias("?")
+      .description("Displays this message")
+      .action(new Action() {
         @Override
         public void onExecuted(@NonNull Command.Instance instance) {
           Diablo.client.console.println("<> indicates required, [] indicates optional");
@@ -58,39 +61,50 @@ class Commands {
           }
         }
       })
-      .addAlias("?");
+      .build();
 
-  public static final Command clear = new Command("clear", "Clears the console output",
-      new Action() {
+  public static final Command clear = Command.builder()
+      .alias("clear").alias("cls")
+      .description("Clears the console output")
+      .action(new Action() {
         @Override
         public void onExecuted(@NonNull Command.Instance instance) {
           Diablo.client.console.clear();
         }
       })
-      .addAlias("cls");
+      .build();
 
-  public static final Command exit = new Command("exit", "Exits the application",
-      new Action() {
+  public static final Command exit = Command.builder()
+      .alias("exit")
+      .description("Closes the game")
+      .action(new Action() {
         @Override
         public void onExecuted(@NonNull Command.Instance instance) {
           Gdx.app.exit();
         }
-      });
+      })
+      .build();
 
-  public static final Command cvars = new Command("cvars", "Prints all cvars and values",
-      new Action() {
+  public static final Command cvars = Command.builder()
+      .alias("cvars")
+      .description("Prints the descriptions of all cvars")
+      .action(new Action() {
         @Override
         public void onExecuted(@NonNull Command.Instance instance) {
           Collection<Cvar> cvars = Diablo.client.cvars().getCvars();
           for (Cvar cvar : cvars) {
             Diablo.client.console.println("%s \"%s\"; %s (Default: \"%s\")",
-                cvar.getAlias(), cvar.getValue(), cvar.getDescription(), cvar.getDefaultValue());
+                cvar.getAlias(), cvar.get(), cvar.getDescription(), cvar.getDefault());
           }
         }
-      });
+      })
+      .build();
 
-  public static final Command get = new Command("get", "Get the value of the specified cvar",
-      new Action() {
+  public static final Command get = Command.builder()
+      .alias("get")
+      .description("Prints the value of the specified cvar")
+      .params(Parameter.of(Cvar.class).suggester(CvarSuggester.INSTANCE))
+      .action(new Action() {
         @Override
         public void onExecuted(@NonNull Command.Instance instance) {
           String alias = instance.getArg(0);
@@ -101,12 +115,18 @@ class Commands {
                 alias, cvars.getAlias());
           }
 
-          Diablo.client.console.println("%s = %s", cvar.getAlias(), cvar.getValue());
+          Diablo.client.console.println("%s = %s", cvar.getAlias(), cvar.get());
         }
-      }, Parameter.of(Cvar.class).suggester(CvarSuggester.INSTANCE));
+      })
+      .build();
 
-  public static final Command set = new Command("set", "Sets the value of the specified cvar",
-      new Action() {
+  public static final Command set = Command.builder()
+      .alias("set")
+      .description("Sets the value of the specified cvar")
+      .params(
+          Parameter.of(Cvar.class).suggester(CvarSuggester.INSTANCE),
+          Parameter.of(String.class).suggester(CvarValueSuggester.INSTANCE))
+      .action(new Action() {
         @Override
         public void onExecuted(@NonNull Command.Instance instance) {
           String alias = instance.getArg(0);
@@ -118,7 +138,7 @@ class Commands {
 
           StringSerializer serializer = Diablo.client.cvars().getSerializer(cvar);
           try {
-            cvar.setValue(value, serializer);
+            cvar.set(value, serializer);
           } catch (SerializeException e) {
             throw new ParameterException("Invalid value specified: \"%s\". Expected type: %s",
                 value, cvar.getType().getName());
@@ -127,6 +147,7 @@ class Commands {
                 value, e.getMessage());
           }
         }
-      }, Parameter.of(Cvar.class).suggester(CvarSuggester.INSTANCE), Parameter.of(String.class));
+      })
+      .build();
 
 }

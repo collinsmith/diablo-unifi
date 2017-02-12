@@ -15,6 +15,13 @@ public class NumberRangeValidator<T extends Number & Comparable<? super T>>
         implements RangeValidator<T> {
 
   @NonNull
+  public static <T extends Number & Comparable<? super T>> NumberRangeValidator<T>
+  of(@NonNull Class<T> type,
+                                               @Nullable T min, @Nullable T max) {
+    return new NumberRangeValidator<>(type, min, max);
+  }
+
+  @NonNull
   private Class<T> TYPE;
 
   @Nullable

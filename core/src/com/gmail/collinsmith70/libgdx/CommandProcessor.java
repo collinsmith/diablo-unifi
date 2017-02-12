@@ -31,8 +31,10 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
 
   @Override
   public int suggest(@NonNull Console console, @NonNull CharSequence buffer,
-                         @NonNull String[] args) {
+                     @NonNull String[] args) {
     if (buffer.length() == 0) {
+      return 0;
+    } else if (buffer.charAt(buffer.length() - 1) == ' ') {
       return 0;
     }
 

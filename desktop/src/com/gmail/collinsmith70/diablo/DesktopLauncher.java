@@ -9,7 +9,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.gmail.collinsmith70.cvar.Cvar;
-import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
+import com.gmail.collinsmith70.cvar.CvarStateAdapter;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -77,7 +77,7 @@ public class DesktopLauncher {
       }
     }
 
-    Cvars.Client.Windowed.addStateListener(new SimpleCvarStateAdapter<Boolean>() {
+    Cvars.Client.Windowed.addStateListener(new CvarStateAdapter<Boolean>() {
       @Override
       public void onChanged(@NonNull Cvar<Boolean> cvar, @Nullable Boolean from,
                             @Nullable Boolean to) {
@@ -91,14 +91,14 @@ public class DesktopLauncher {
       }
     });
 
-    Cvars.Client.Display.BackgroundFPSLimit.addStateListener(new SimpleCvarStateAdapter<Short>() {
+    Cvars.Client.Display.BackgroundFPSLimit.addStateListener(new CvarStateAdapter<Short>() {
       @Override
       public void onChanged(@NonNull Cvar<Short> cvar, @Nullable Short from, @Nullable Short to) {
         config.backgroundFPS = to;
       }
     });
 
-    Cvars.Client.Display.ForegroundFPSLimit.addStateListener(new SimpleCvarStateAdapter<Short>() {
+    Cvars.Client.Display.ForegroundFPSLimit.addStateListener(new CvarStateAdapter<Short>() {
       @Override
       public void onChanged(@NonNull Cvar<Short> cvar, @Nullable Short from, @Nullable Short to) {
         config.foregroundFPS = to;

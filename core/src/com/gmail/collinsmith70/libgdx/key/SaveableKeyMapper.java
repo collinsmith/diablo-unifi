@@ -71,12 +71,12 @@ public abstract class SaveableKeyMapper extends KeyMapper {
 
   public abstract void save(@NonNull MappedKey key);
 
-  public Collection<SerializeException> saveAll() {
-    Collection<SerializeException> exceptions = null;
+  public Collection<RuntimeException> saveAll() {
+    Collection<RuntimeException> exceptions = null;
     for (MappedKey key : this) {
       try {
         save(key);
-      } catch (SerializeException e) {
+      } catch (RuntimeException e) {
         if (exceptions == null) {
           exceptions = new ArrayList<>(1);
         }

@@ -10,7 +10,7 @@ import com.gmail.collinsmith70.diablo.Diablo;
 import java.util.Collection;
 import java.util.Iterator;
 
-public enum CvarSuggester implements Console.SuggestionProvider {
+public enum CvarValueSuggester implements Console.SuggestionProvider {
   INSTANCE;
 
   @Override
@@ -22,45 +22,50 @@ public enum CvarSuggester implements Console.SuggestionProvider {
       return 0;
     }
 
-    String arg = args[args.length - 1];
-    Collection<Cvar> cvars = Diablo.client.cvars().prefixMap(arg).values();
-    switch (cvars.size()) {
+    String alias = args[args.length - 2];
+    Cvar cvar = Diablo.client.cvars().get(alias);
+    if (cvar == null) {
+      return 0;
+    }
+
+    String str = args[args.length - 1];
+    Collection<String> suggestions = cvar.suggest(str);
+    switch (suggestions.size()) {
       case 0:
         return 0;
       case 1:
-        Cvar singleCvar = cvars.iterator().next();
-        String append = singleCvar.getAlias().substring(arg.length());
+        String onlySuggestion = suggestions.iterator().next();
+        String append = onlySuggestion.substring(str.length());
         console.appendToBuffer(append);
         return 1;
       default:
         String commonPrefix = null;
-        for (Cvar cvar : cvars) {
+        for (String suggestion : suggestions) {
           if (commonPrefix == null) {
-            commonPrefix = cvar.getAlias();
+            commonPrefix = suggestion;
           } else if (commonPrefix.isEmpty()) {
             break;
           } else {
-            commonPrefix = Strings.commonPrefix(commonPrefix, cvar.getAlias());
+            commonPrefix = Strings.commonPrefix(commonPrefix, suggestion);
           }
         }
 
-        if (commonPrefix != null && commonPrefix.length() > arg.length()) {
-          append = commonPrefix.substring(arg.length());
+        if (commonPrefix != null && commonPrefix.length() > str.length()) {
+          append = commonPrefix.substring(str.length());
           console.appendToBuffer(append);
         } else {
           int i = 0;
           StringBuilder sb = new StringBuilder(64);
-          for (Iterator<Cvar> it = cvars.iterator(); it.hasNext(); ) {
-            Cvar cvar = it.next();
-            String alias = cvar.getAlias();
+          for (Iterator<String> it = suggestions.iterator(); it.hasNext(); ) {
+            String suggestion = it.next();
             if (++i % 4 == 0) {
-              sb.append(alias);
+              sb.append(suggestion);
               console.println(sb.toString());
               sb.setLength(0);
             } else if (it.hasNext()) {
-              sb.append(Strings.padEnd(alias, 36, ' '));
+              sb.append(Strings.padEnd(suggestion, 32, ' '));
             } else {
-              sb.append(alias);
+              sb.append(suggestion);
             }
           }
 
@@ -69,7 +74,7 @@ public enum CvarSuggester implements Console.SuggestionProvider {
           }
         }
 
-        return cvars.size();
+        return suggestions.size();
     }
   }
 }

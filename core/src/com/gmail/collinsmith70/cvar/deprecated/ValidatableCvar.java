@@ -1,4 +1,4 @@
-package com.gmail.collinsmith70.cvar;
+package com.gmail.collinsmith70.cvar.deprecated;
 
 import com.google.common.base.Preconditions;
 
@@ -11,14 +11,14 @@ import com.gmail.collinsmith70.validator.ValidationException;
 import com.gmail.collinsmith70.validator.Validator;
 
 /**
- * Implementation of a {@link SimpleCvar} which performs {@link #isValid validations} upon
+ * Implementation of a {@link com.gmail.collinsmith70.cvar.SimpleCvar} which performs {@link #isValid validations} upon
  * {@linkplain #setValue assigned} values.
  *
  * @param <T> The {@linkplain Class type} of the {@linkplain #getValue variable} which this
  *            {@code SimpleCvar} represents
  */
 @SuppressWarnings("ConstantConditions")
-public final class ValidatableCvar<T> extends SimpleCvar<T> implements Validatable {
+public final class ValidatableCvar<T> extends com.gmail.collinsmith70.cvar.SimpleCvar<T> implements Validatable {
 
   /**
    * {@code Validator} used to evaluate the validity of the values being

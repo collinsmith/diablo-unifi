@@ -15,7 +15,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Timer;
 import com.gmail.collinsmith70.cvar.Cvar;
-import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
+import com.gmail.collinsmith70.cvar.CvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.Console;
 
 import java.io.OutputStream;
@@ -131,7 +131,7 @@ public class RenderableConsole extends Console implements Disposable {
     hintBackgroundTexture = new Texture(solidColorPixmap);
     solidColorPixmap.dispose();
 
-    final Cvar.StateListener<Float> colorChangeListener = new SimpleCvarStateAdapter<Float>() {
+    final Cvar.StateListener<Float> colorChangeListener = new CvarStateAdapter<Float>() {
       @Override
       public void onChanged(@NonNull Cvar<Float> cvar, @Nullable Float from, @Nullable Float to) {
         Preconditions.checkState(font != null, "font should not be null");
@@ -148,7 +148,7 @@ public class RenderableConsole extends Console implements Disposable {
       }
     };
 
-    Cvars.Client.Console.Font.addStateListener(new SimpleCvarStateAdapter<String>() {
+    Cvars.Client.Console.Font.addStateListener(new CvarStateAdapter<String>() {
       @Override
       public void onChanged(@NonNull Cvar<String> cvar, @Nullable String from,
                             @Nullable String to) {
@@ -163,7 +163,7 @@ public class RenderableConsole extends Console implements Disposable {
       }
     });
 
-    Cvars.Client.Console.Height.addStateListener(new SimpleCvarStateAdapter<Float>() {
+    Cvars.Client.Console.Height.addStateListener(new CvarStateAdapter<Float>() {
       @Override
       public void onChanged(@NonNull Cvar<Float> cvar, @Nullable Float from, @Nullable Float to) {
         Preconditions.checkState(to != null, "to should not be null");

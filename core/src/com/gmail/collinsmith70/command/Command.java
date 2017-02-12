@@ -1,7 +1,9 @@
 package com.gmail.collinsmith70.command;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 
 import android.support.annotation.IntRange;
@@ -14,6 +16,7 @@ import com.gmail.collinsmith70.validator.Validator;
 
 import org.apache.commons.collections4.iterators.ArrayIterator;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -22,25 +25,27 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class Command implements Validator {
 
   @NonNull
+  public static <T> Builder builder() {
+    return new Builder();
+  }
+
+  @NonNull
   private static final String[] EMPTY_ARGS = new String[0];
 
   @NonNull
   private static final Parameter[] EMPTY_PARAMS = new Parameter[0];
 
   @NonNull
-  private final String ALIAS;
+  /*package*/ final String ALIAS;
 
   @NonNull
-  private final String DESCRIPTION;
+  /*package*/ final String DESCRIPTION;
 
   @NonNull
-  /*package*/ final Set<String> ALIASES;
+  /*package*/ final Parameter[] PARAMS;
 
   @NonNull
-  private final Parameter[] PARAMS;
-
-  @NonNull
-  private final Action ACTION;
+  /*package*/ final Action ACTION;
 
   @IntRange(from = 0)
   private final int MINIMUM_ARGS;
@@ -48,23 +53,17 @@ public class Command implements Validator {
   @NonNull
   private final Set<AssignmentListener> ASSIGNMENT_LISTENERS;
 
-  public Command(@NonNull String alias, @NonNull String description,
-                 @NonNull Action action, @Nullable Parameter... params) {
-    Preconditions.checkArgument(!alias.isEmpty(), "alias cannot be empty");
-    this.ALIAS = alias;
-    this.DESCRIPTION = Preconditions.checkNotNull(description, "description cannot be null");
-    this.ALIASES = new CopyOnWriteArraySet<>();
-    this.ACTION = Preconditions.checkNotNull(action, "action cannot be null");
-    this.PARAMS = MoreObjects.firstNonNull(params, EMPTY_PARAMS);
-    this.MINIMUM_ARGS = calculateMinimumArgs(PARAMS);
+  @NonNull
+  /*package*/ Set<String> aliases;
+
+  public Command(@NonNull Builder builder) {
+    this.ALIAS = Preconditions.checkNotNull(builder.alias, "Commands must have at least one alias");
+    this.DESCRIPTION = Strings.nullToEmpty(builder.description);
+    this.PARAMS = MoreObjects.firstNonNull(builder.params, EMPTY_PARAMS);
+    this.ACTION = MoreObjects.firstNonNull(builder.action, Action.DO_NOTHING);
+    this.MINIMUM_ARGS = PARAMS == EMPTY_PARAMS ? 0 : calculateMinimumArgs(PARAMS);
     this.ASSIGNMENT_LISTENERS = new CopyOnWriteArraySet<>();
-
-    ALIASES.add(alias);
-  }
-
-  public Command(@NonNull String alias, @NonNull String description,
-                 @Nullable Parameter... params) {
-    this(alias, description, Action.DO_NOTHING, params);
+    this.aliases = builder.aliases;
   }
 
   private int calculateMinimumArgs(@NonNull Parameter[] params) {
@@ -96,7 +95,11 @@ public class Command implements Validator {
 
   @NonNull
   public Set<String> getAliases() {
-    return ImmutableSet.copyOf(ALIASES);
+    if (aliases == null) {
+      return Collections.emptySet();
+    }
+
+    return ImmutableSet.<String>builder().add(ALIAS).addAll(aliases).build();
   }
 
   @NonNull
@@ -141,8 +144,12 @@ public class Command implements Validator {
 
   @NonNull
   public Command addAlias(@NonNull String alias) {
-    Preconditions.checkArgument(!alias.isEmpty(), "alias cannot be empty");
-    ALIASES.add(alias);
+    Preconditions.checkArgument(!alias.isEmpty(), "Aliases cannot be empty");
+    if (aliases == null) {
+      aliases = new CopyOnWriteArraySet<>();
+    }
+
+    aliases.add(alias);
     for (AssignmentListener l : ASSIGNMENT_LISTENERS) {
       l.onAssigned(this, alias);
     }
@@ -156,8 +163,8 @@ public class Command implements Validator {
     }
 
     Preconditions.checkArgument(!alias.equals(ALIAS),
-        "cannot unassign the primary alias of a command");
-    boolean unassigned = ALIASES.remove(alias);
+        "The primary alias cannot be removed");
+    boolean unassigned = aliases.remove(alias);
     if (unassigned) {
       for (AssignmentListener l : ASSIGNMENT_LISTENERS) {
         l.onUnassigned(this, alias);
@@ -168,15 +175,19 @@ public class Command implements Validator {
   }
 
   public boolean isAlias(@Nullable String alias) {
-    return alias != null && ALIASES.contains(alias);
+    return Objects.equal(ALIAS, alias) ||
+        (alias != null && aliases != null && aliases.contains(alias));
   }
 
   public boolean addAssignmentListener(@NonNull AssignmentListener l) {
     Preconditions.checkArgument(l != null, "l cannot be null");
     boolean added = ASSIGNMENT_LISTENERS.add(l);
     if (added) {
-      for (String alias : ALIASES) {
-        l.onAssigned(this, alias);
+      l.onAssigned(this, ALIAS);
+      if (aliases != null) {
+        for (String alias : aliases) {
+          l.onAssigned(this, alias);
+        }
       }
     }
 
@@ -313,6 +324,66 @@ public class Command implements Validator {
     public void execute() {
       validate(this);
       ACTION.onExecuted(this);
+    }
+
+  }
+
+  public static class Builder {
+
+    @Nullable
+    private String alias;
+
+    @Nullable
+    private String description;
+
+    @Nullable
+    private Set<String> aliases;
+
+    @Nullable
+    private Parameter[] params;
+
+    @Nullable
+    private Action action;
+
+    private Builder() {}
+
+    @NonNull
+    public Builder alias(@NonNull String alias) {
+      Preconditions.checkArgument(!alias.isEmpty(), "Aliases cannot be empty");
+      if (this.alias == null) {
+        this.alias = alias;
+      } else {
+        if (aliases == null) {
+          aliases = new CopyOnWriteArraySet<>();
+        }
+
+        aliases.add(alias);
+      }
+
+      return this;
+    }
+
+    @NonNull
+    public Builder description(@NonNull String description) {
+      this.description = Preconditions.checkNotNull(description);
+      return this;
+    }
+
+    @NonNull
+    public Builder params(@NonNull Parameter... params) {
+      this.params = Preconditions.checkNotNull(params);
+      return this;
+    }
+
+    @NonNull
+    public Builder action(@NonNull Action action) {
+      this.action = Preconditions.checkNotNull(action);
+      return this;
+    }
+
+    @NonNull
+    public Command build() {
+      return new Command(this);
     }
 
   }

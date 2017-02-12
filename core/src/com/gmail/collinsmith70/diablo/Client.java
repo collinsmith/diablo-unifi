@@ -16,7 +16,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.gmail.collinsmith70.cvar.Cvar;
-import com.gmail.collinsmith70.cvar.SimpleCvarStateAdapter;
+import com.gmail.collinsmith70.cvar.CvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.CommandProcessor;
 import com.gmail.collinsmith70.libgdx.Console;
 import com.gmail.collinsmith70.libgdx.GdxCommandManager;
@@ -24,7 +24,6 @@ import com.gmail.collinsmith70.libgdx.GdxCvarManager;
 import com.gmail.collinsmith70.libgdx.GdxKeyMapper;
 import com.gmail.collinsmith70.libgdx.key.MappedKey;
 import com.gmail.collinsmith70.libgdx.util.PropagatingInputProcessor;
-import com.gmail.collinsmith70.serializer.SerializeException;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -244,17 +243,17 @@ public class Client extends ApplicationAdapter {
 
   @Override
   public void dispose() {
-    Collection<SerializeException> exceptions;
+    Collection<RuntimeException> exceptions;
 
     Gdx.app.debug(TAG, "Saving CVARS...");
     exceptions = cvars.saveAll();
-    for (SerializeException e : exceptions) {
+    for (RuntimeException e : exceptions) {
       console.println(e.getMessage());
     }
 
     Gdx.app.debug(TAG, "Saving key assignments...");
     exceptions = keys.saveAll();
-    for (SerializeException e : exceptions) {
+    for (RuntimeException e : exceptions) {
       console.println(e.getMessage());
     }
 
@@ -279,7 +278,7 @@ public class Client extends ApplicationAdapter {
 
   private void setupCvars() {
 
-    Cvars.Client.Display.ShowFPS.addStateListener(new SimpleCvarStateAdapter<Byte>() {
+    Cvars.Client.Display.ShowFPS.addStateListener(new CvarStateAdapter<Byte>() {
       @Override
       public void onChanged(@NonNull Cvar<Byte> cvar, @Nullable Byte from, @Nullable Byte to) {
         drawFpsMethod = to == null ? 0 : to;

@@ -1,211 +1,294 @@
 package com.gmail.collinsmith70.cvar;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.gmail.collinsmith70.serializer.SerializeException;
 import com.gmail.collinsmith70.serializer.StringSerializer;
+import com.gmail.collinsmith70.validator.Validator;
 
-/**
- * <a href="https://en.wikipedia.org/wiki/CVAR">CVAR</a>s are named variables which are used for
- * configuring a client, specifically in video game applications. CVARs support
- * {@linkplain StateListener callbacks} when certain state transitions occur, such as when they
- * are loaded or changed.
- *
- * @param <T> The {@linkplain Class type} of the {@linkplain #getValue variable} being represented
- *
- * @see <a href="https://en.wikipedia.org/wiki/CVAR">Wikipedia article on CVARs</a>
- */
-@SuppressWarnings("unused")
-public interface Cvar<T> {
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
-  /**
-   * Returns the <a href="https://en.wikipedia.org/wiki/Attribute%E2%80%93value_pair">key</a> used
-   * to identify this {@code Cvar}.
-   *
-   * @return The alias used to identify this {@code Cvar}, or {@code null} if no alias has been set
-   *
-   * @see <a href="https://en.wikipedia.org/wiki/Attribute%E2%80%93value_pair">Wikipedia article on key-value pairs</a>
-   */
+public class Cvar<T> implements SuggestionProvider {
+
   @NonNull
-  String getAlias();
+  public static <T> Builder<T> builder(@NonNull Class<T> type) {
+    return new Builder<>(type);
+  }
 
-  /**
-   * Returns the default value of this {@code Cvar}. The default value of this {@code Cvar} is the
-   * assigned value upon instantiation, as well as when this {@code Cvar} is {@linkplain #reset}.
-   *
-   * @return The default value of this {@code Cvar}, or {@code null} if no default value has been
-   *         set
-   * 
-   * @see #reset
-   */
+  @NonNull
+  /*package*/ final String ALIAS;
+
+  @NonNull
+  /*private*/ final String DESCRIPTION;
+
+  @NonNull
+  /*private*/ final Class<T> TYPE;
+
   @Nullable
-  T getDefaultValue();
+  /*private*/ final T DEFAULT_VALUE;
 
-  /**
-   * Returns a brief description explaining the purpose and function of this {@code Cvar} along with
-   * the values it permits.
-   *
-   * @return A brief description of this {@code Cvar}, or {@code ""} if no description was given
-   */
-  @NonNull
-  String getDescription();
-
-  /**
-   * Returns the class {@linkplain T type} of the {@linkplain #getValue variable} being represented.
-   *
-   * @return The class {@linkplain T type} of the {@linkplain #getValue variable} being represented
-   */
-  @NonNull
-  Class<T> getType();
-
-  /**
-   * Returns the value of the variable represented by this {@code Cvar}.
-   *
-   * @return The value of the variable represented by this {@code Cvar}, or {@code null} if no value
-   *         has been set (i.e., the {@code Cvar} is unassigned)
-   */
   @Nullable
-  T getValue();
+  /*package*/ final Validator VALIDATOR;
 
-  /**
-   * Assigns the value of this {@code Cvar} to {@code value}.
-   * <p>
-   * Note: Setting the value of this {@code Cvar} to {@code null} will not change its state to
-   *       {@linkplain #isLoaded unloaded}.
-   * <p>
-   * Note: Calling this method will invoke either {@link StateListener#onChanged} or
-   *       {@link StateListener#onLoaded}, depending on whether or not this {@code Cvar} has been
-   *       {@linkplain #isLoaded loaded}.
-   *
-   * @param value The value to assign the variable represented by this {@code Cvar} to, or
-   *              {@code null} to mark this {@code Cvar} as having no value, and thus be unassigned
-   */
-  void setValue(@Nullable T value);
+  @Nullable
+  /*package*/ final SuggestionProvider SUGGESTIONS;
 
-  /**
-   * {@linkplain StringSerializer#deserialize Deserializes} the specified (@code string} using the
-   * passed {@code serializer}. This implementation is provided to assist with assigning
-   * {@code Cvar} instances string representations of their values, when type erasure has taken
-   * place, so it is expected that {@code serializer} can deserialize objects of type {@link T}.
-   * <p>
-   * Note: This implementation will call {@link #setValue} to perform the actual assignment.
-   *
-   * @param string     Serialized value to assign
-   * @param serializer {@code StringSerializer} to use to deserialize {@code string}
-   *
-   * @throws SerializeException if {@code serializer} cannot handle deserializing {@code string}
-   *     (e.g., ClassCastException), or if there was some other problem deserializing {@code
-   *     string}. For more details on the specific cause, see {@link SerializeException#getCause()}.
-   *
-   * @see #setValue
-   */
+  @Nullable
+  /*package*/ final StringSerializer<T> SERIALIZER;
+
+  /*package*/ final boolean REQUIRES_RESTART;
+
+  @NonNull
+  private final Set<StateListener<T>> STATE_LISTENERS;
+
+  @Nullable
+  private T value;
+
+  private boolean isLoaded;
+
+  public Cvar(Cvar.Builder<T> builder) {
+    this.ALIAS = Strings.nullToEmpty(builder.alias);
+    this.DESCRIPTION = Strings.nullToEmpty(builder.description);
+    this.TYPE = builder.TYPE;
+    this.DEFAULT_VALUE = builder.defaultValue;
+    this.VALIDATOR = builder.validator;
+    this.SUGGESTIONS = builder.suggestions;
+    this.SERIALIZER = builder.serializer;
+    this.REQUIRES_RESTART = builder.requiresRestart;
+    this.value = DEFAULT_VALUE;
+    this.isLoaded = false;
+
+    this.STATE_LISTENERS = new CopyOnWriteArraySet<>();
+  }
+
+  @NonNull
+  @Override
+  public String toString() {
+    final T value = this.value;
+    if (value == null) {
+      return "null";
+    }
+
+    return value.toString();
+  }
+
+  @NonNull
+  public String getAlias() {
+    return ALIAS;
+  }
+
+  @NonNull
+  public String getDescription() {
+    return DESCRIPTION;
+  }
+
+  @NonNull
+  public Class<T> getType() {
+    return TYPE;
+  }
+
+  @Nullable
+  public T getDefault() {
+    return DEFAULT_VALUE;
+  }
+
+  public boolean requiresRestart() {
+    return REQUIRES_RESTART;
+  }
+
+  public boolean isLoaded() {
+    return isLoaded;
+  }
+
+  public boolean hasSerializer() {
+    return SERIALIZER != null;
+  }
+
+  @Nullable
+  public StringSerializer<T> getSerializer() {
+    return SERIALIZER;
+  }
+
+  @Nullable
+  public T get() {
+    return value;
+  }
+
+  public void set(@Nullable T value) {
+    final T prev = this.value;
+    if (Objects.equal(prev, value)) {
+      return;
+    }
+
+    if (VALIDATOR != null) {
+      VALIDATOR.validate(value);
+    }
+
+    this.value = value;
+    if (isLoaded) {
+      for (StateListener l : STATE_LISTENERS) {
+        l.onChanged(this, prev, value);
+      }
+    } else {
+      this.isLoaded = true;
+      for (StateListener l : STATE_LISTENERS) {
+        l.onLoaded(this, value);
+      }
+    }
+  }
+
+  public void set(@NonNull String str) {
+    try {
+      if (SERIALIZER == null) {
+        throw new SerializeException(ALIAS + " does not have a serializer attached");
+      }
+
+      T value = SERIALIZER.deserialize(str);
+      set(value);
+    } catch (Throwable t) {
+      Throwables.propagateIfPossible(t, RuntimeException.class);
+      throw new RuntimeException(t);
+    }
+  }
+
   @SuppressWarnings("unchecked")
-  void setValue(@NonNull String string, @NonNull StringSerializer<?> serializer);
+  public void set(@NonNull String str, @NonNull StringSerializer deserializer) {
+    try {
+      T value = ((StringSerializer<T>) deserializer).deserialize(str);
+      set(value);
+    } catch (Throwable t) {
+      Throwables.propagateIfPossible(t, RuntimeException.class);
+      throw new RuntimeException(t);
+    }
+  }
 
-  /**
-   * Returns whether or not the {@linkplain #getValue value} of this {@code Cvar} is {@code null}.
-   *
-   * @return {@code true} if the value of this {@code Cvar} is {@code null}, otherwise {@code false}
-   *
-   * @see #getValue
-   */
-  boolean isEmpty();
+  public void reset() {
+    if (!Objects.equal(value, DEFAULT_VALUE)) {
+      final T prev = this.value;
+      this.value = DEFAULT_VALUE;
+      for (StateListener l : STATE_LISTENERS) {
+        l.onChanged(this, prev, value);
+      }
+    }
+  }
 
-  /**
-   * Returns whether or not this {@code Cvar} has has its first {@linkplain #setValue assignment}
-   * (i.e., been initialized).
-   *
-   * @return {@code true} if this {@link Cvar} has been initialized, otherwise {@code false}
-   */
-  boolean isLoaded();
+  public boolean addStateListener(@NonNull StateListener<T> l) {
+    Preconditions.checkArgument(l != null, "l cannot be null");
+    boolean added = STATE_LISTENERS.add(l);
+    l.onLoaded(this, value);
+    return added;
+  }
 
-  /**
-   * Resets this {@code Cvar} to its {@linkplain #getDefaultValue default value}.
-   * <p>
-   * Note: Calling this method does not set the state of this {@code Cvar} as
-   *       {@linkplain #isLoaded loaded}
-   *
-   * @see #getDefaultValue
-   */
-  void reset();
+  public boolean containsStateListener(@Nullable StateListener<T> l) {
+    return l != null && STATE_LISTENERS.contains(l);
 
-  /**
-   * Associates a {@code StateListener} with this {@code Cvar} to receive callbacks when its state
-   * changes.
-   *
-   * @param l The {@code StateListener} to register
-   *
-   * @return {@code true} if {@code l} was added, otherwise {@code false} if it is already
-   *         registered to receive callbacks
-   *
-   * @see #containsStateListener
-   * @see #removeStateListener
-   */
-  boolean addStateListener(@NonNull StateListener<T> l);
+  }
 
-  /**
-   * Returns whether or not the specified {@code StateListener} {@code l} is registered to receive
-   * callback events regarding the state of this {@code Cvar}.
-   * <p>
-   * Note: If {@code l} is {@code null}, {@code false} will be returned.
-   *
-   * @param l The {@code StateListener} to check
-   *
-   * @return {@code true} if {@code l} is registered to receive callbacks regarding the state of
-   *         this {@code Cvar}, otherwise {@code false}
-   *
-   * @see #addStateListener
-   * @see #removeStateListener
-   */
-  boolean containsStateListener(@Nullable StateListener<T> l);
+  public boolean removeStateListener(@Nullable StateListener<T> l) {
+    return l != null && STATE_LISTENERS.remove(l);
+  }
 
-  /**
-   * Unregisters the specified {@code StateListener} {@code l} from receiving callbacks regarding
-   * the state changes of this {@code Cvar}.
-   * <p>
-   * Note: If {@code l} is {@code null} or not a registered listener, {@code false} will be
-   *       returned.
-   *
-   * @param l The {@code StateListener} to remove
-   *
-   * @return {@code true} if {@code l} was removed by this operation, otherwise {@code false}
-   *
-   * @see #addStateListener
-   * @see #containsStateListener
-   */
-  boolean removeStateListener(@Nullable StateListener<T> l);
+  @Override
+  public Collection<String> suggest(@NonNull String str) {
+    if (SUGGESTIONS == null) {
+      return Collections.emptyList();
+    }
 
-  /**
-   * Interface for representing the various <a href="https://en.wikipedia.org/wiki/Callback_(computer_programming)">
-   * callbacks</a> {@link Cvar} instances will send during state transitions.
-   *
-   * @param <T> The {@linkplain Class type} of the {@linkplain #getValue variable} being represented
-   *
-   * @see <a href="https://en.wikipedia.org/wiki/Callback_(computer_programming)">Wikipedia article on callbacks</a>
-   */
-  interface StateListener<T> {
+    return SUGGESTIONS.suggest(str);
+  }
 
-    /**
-     * Called synchronously when the value of a {@link Cvar} changes.
-     * <p>
-     * Note: This callback may not be called when a {@code Cvar} is {@linkplain #isLoaded loaded},
-     *       as {@link #onLoaded} is designed specifically for that purpose and this callback may
-     *       not apply in all cases.
-     *
-     * @param cvar The {@code Cvar} where the event occurred
-     * @param from The previous value of the {@code Cvar}
-     * @param to   The current value of the {@code Cvar}
-     */
+  public interface StateListener<T> {
+
     void onChanged(@NonNull final Cvar<T> cvar, @Nullable final T from, @Nullable final T to);
 
-    /**
-     * Called synchronously when a {@link Cvar} is {@linkplain #isLoaded loaded}.
-     *
-     * @param cvar {@code Cvar} where the event occurred
-     * @param to   The current value of the {@code Cvar}
-     */
     void onLoaded(@NonNull final Cvar<T> cvar, @Nullable final T to);
+
+  }
+
+  public static class Builder<T> {
+
+    @NonNull
+    private final Class<T> TYPE;
+
+    @Nullable
+    private String alias;
+
+    @Nullable
+    private String description;
+
+    @Nullable
+    private T defaultValue;
+
+    @Nullable
+    private Validator validator;
+
+    @Nullable
+    private SuggestionProvider suggestions;
+
+    @Nullable
+    private StringSerializer<T> serializer;
+
+    private boolean requiresRestart = false;
+
+    private Builder(@NonNull Class<T> type) {
+      this.TYPE = Preconditions.checkNotNull(type);
+    }
+
+    @NonNull
+    public Builder<T> alias(@NonNull String alias) {
+      this.alias = Preconditions.checkNotNull(alias);
+      return this;
+    }
+
+    @NonNull
+    public Builder<T> description(@NonNull String description) {
+      this.description = Preconditions.checkNotNull(description);
+      return this;
+    }
+
+    @NonNull
+    public Builder<T> defaultValue(@Nullable T defaultValue) {
+      this.defaultValue = defaultValue;
+      return this;
+    }
+
+    @NonNull
+    public Builder<T> validator(@NonNull Validator validator) {
+      this.validator = Preconditions.checkNotNull(validator);
+      return this;
+    }
+
+    @NonNull
+    public Builder<T> suggestions(@NonNull SuggestionProvider suggestions) {
+      this.suggestions = Preconditions.checkNotNull(suggestions);
+      return this;
+    }
+
+    @NonNull
+    public Builder<T> serializer(@NonNull StringSerializer<T> serializer) {
+      this.serializer = Preconditions.checkNotNull(serializer);
+      return this;
+    }
+
+    @NonNull
+    public Builder<T> requiresRestart(boolean b) {
+      this.requiresRestart = b;
+      return this;
+    }
+
+    @NonNull
+    public Cvar<T> build() {
+      return new Cvar<>(this);
+    }
 
   }
 

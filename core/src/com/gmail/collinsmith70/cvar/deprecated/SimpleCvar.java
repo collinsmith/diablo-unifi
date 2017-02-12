@@ -1,4 +1,4 @@
-package com.gmail.collinsmith70.cvar;
+package com.gmail.collinsmith70.cvar.deprecated;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -12,12 +12,12 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * Basic implementation of a {@link Cvar}.
+ * Basic implementation of a {@link com.gmail.collinsmith70.cvar.Cvar}.
  *
  * @param <T> {@inheritDoc}
  */
 @SuppressWarnings("ConstantConditions")
-public class SimpleCvar<T> implements Cvar<T> {
+public class SimpleCvar<T> implements com.gmail.collinsmith70.cvar.Cvar<T> {
 
   /**
    * <a href="https://en.wikipedia.org/wiki/Attribute%E2%80%93value_pair">MappableKey</a> used to identify
@@ -57,7 +57,7 @@ public class SimpleCvar<T> implements Cvar<T> {
   private final Class<T> TYPE;
 
   /**
-   * {@link Set} of {@link Cvar.StateListener} instances which will receive callbacks during state
+   * {@link Set} of {@link StateListener} instances which will receive callbacks during state
    * transitions of this {@code Cvar}.
    *
    * @see #addStateListener
@@ -165,11 +165,11 @@ public class SimpleCvar<T> implements Cvar<T> {
 
     this.value = value;
     if (isLoaded) {
-      for (Cvar.StateListener<T> stateListener : STATE_LISTENERS) {
+      for (StateListener<T> stateListener : STATE_LISTENERS) {
         stateListener.onChanged(this, oldValue, this.value);
       }
     } else {
-      for (Cvar.StateListener<T> stateListener : STATE_LISTENERS) {
+      for (StateListener<T> stateListener : STATE_LISTENERS) {
         stateListener.onLoaded(this, this.value);
       }
 
@@ -194,7 +194,7 @@ public class SimpleCvar<T> implements Cvar<T> {
   /**
    * {@inheritDoc}
    * <p>
-   * Note: Calls {@link Cvar.StateListener#onLoaded} for {@code l} so that it can perform any
+   * Note: Calls {@link StateListener#onLoaded} for {@code l} so that it can perform any
    *       necessary setup.
    */
   @Override
