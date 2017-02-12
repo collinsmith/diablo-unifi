@@ -1,9 +1,12 @@
 package com.gmail.collinsmith70.util;
 
+import com.google.common.base.Strings;
+
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +33,27 @@ public class StringUtils {
     }
 
     return args.toArray(new String[args.size()]);
+  }
+
+  @NonNull
+  public static String commonPrefix(@NonNull Iterable<String> it) {
+    return commonPrefix(it.iterator());
+  }
+
+  @NonNull
+  public static String commonPrefix(@NonNull Iterator<String> it) {
+    String commonPrefix = null;
+    while (it.hasNext()) {
+      if (commonPrefix == null) {
+        commonPrefix = it.next();
+      } else if (commonPrefix.isEmpty()) {
+        break;
+      } else {
+        commonPrefix = Strings.commonPrefix(commonPrefix, it.next());
+      }
+    }
+
+    return Strings.nullToEmpty(commonPrefix);
   }
 
   private StringUtils() {}

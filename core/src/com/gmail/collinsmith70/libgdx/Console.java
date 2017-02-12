@@ -262,7 +262,8 @@ public class Console extends PrintStream implements InputProcessor {
         caretMoved();
         return true;
       case Input.Keys.TAB:
-        if (caret != BUFFER.length()) {
+        final int length = BUFFER.length();
+        if (caret != length || length == 0) {
           break;
         }
 

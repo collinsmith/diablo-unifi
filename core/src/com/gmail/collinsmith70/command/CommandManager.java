@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import org.apache.commons.collections4.OrderedMapIterator;
 import org.apache.commons.collections4.Trie;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 
@@ -27,6 +28,11 @@ public class CommandManager implements Command.AssignmentListener {
   @NonNull
   public Collection<Command> getCommands() {
     return new HashSet<>(COMMANDS.values());
+  }
+
+  @NonNull
+  public OrderedMapIterator<String, Command> mapIterator() {
+    return COMMANDS.mapIterator();
   }
 
   public boolean add(@NonNull Command command) {
