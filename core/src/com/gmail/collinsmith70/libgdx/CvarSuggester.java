@@ -30,8 +30,7 @@ public enum CvarSuggester implements Console.SuggestionProvider {
         return 0;
       case 1:
         Cvar singleCvar = cvars.iterator().next();
-        String append = singleCvar.getAlias().substring(arg.length());
-        console.appendToBuffer(append);
+        console.buffer.append(singleCvar.getAlias(), arg.length());
         return 1;
       default:
         String commonPrefix = null;
@@ -46,8 +45,7 @@ public enum CvarSuggester implements Console.SuggestionProvider {
         }
 
         if (commonPrefix != null && commonPrefix.length() > arg.length()) {
-          append = commonPrefix.substring(arg.length());
-          console.appendToBuffer(append);
+          console.buffer.append(commonPrefix, arg.length());
         } else {
           int i = 0;
           StringBuilder sb = new StringBuilder(64);

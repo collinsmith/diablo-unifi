@@ -179,7 +179,7 @@ public class RenderableConsole extends Console implements Disposable {
       }
     };
 
-    clearBuffer();
+    buffer.clear();
     updateCaret();
   }
 
@@ -265,15 +265,15 @@ public class RenderableConsole extends Console implements Disposable {
         return true;
       case Input.Keys.UP:
         if (historyIterator != null && historyIterator.hasPrevious()) {
-          setBuffer(historyIterator.previous());
+          buffer.set(historyIterator.previous());
         }
 
         return true;
       case Input.Keys.DOWN:
         if (historyIterator != null && historyIterator.hasNext()) {
-          setBuffer(historyIterator.next());
+          buffer.set(historyIterator.next());
         } else {
-          clearBuffer();
+          buffer.clear();
         }
 
         return true;

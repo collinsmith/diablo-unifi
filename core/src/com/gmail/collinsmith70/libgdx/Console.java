@@ -1,7 +1,5 @@
 package com.gmail.collinsmith70.libgdx;
 
-import com.google.common.base.Preconditions;
-
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -51,6 +49,9 @@ public class Console extends PrintStream implements InputProcessor {
   @NonNull
   private final StringBuffer BUFFER;
 
+  @NonNull
+  public final BufferOp buffer;
+
   /**
    * Current position of the caret.
    */
@@ -67,6 +68,7 @@ public class Console extends PrintStream implements InputProcessor {
     this.SUGGESTION_PROVIDERS = new CopyOnWriteArraySet<>();
     this.COMMIT_PROCESSORS = new CopyOnWriteArraySet<>();
     this.BUFFER = new StringBuffer(INITIAL_BUFFER_CAPACITY);
+    this.buffer = new BufferOp();
   }
 
   /**
@@ -99,86 +101,17 @@ public class Console extends PrintStream implements InputProcessor {
   }
 
   /**
-   * Empties the buffer contents.
-   */
-  public void clearBuffer() {
-    BUFFER.setLength(0);
-    caret = 0;
-  }
-
-  /**
-   * Clears and sets the buffer to the specified {@code charSequence}.
-   *
-   * @param charSequence The {@code CharSequence} to write
-   */
-  public void setBuffer(@NonNull CharSequence charSequence) {
-    Preconditions.checkArgument(charSequence != null, "charSequence cannot be null");
-    BUFFER.setLength(0);
-    BUFFER.append(charSequence);
-    caret = BUFFER.length();
-    bufferModified();
-  }
-
-  /**
-   * Appends the specified {@code charSequence} to the end of the buffer and sets the caret position
-   * to the end.
-   *
-   * @param charSequence The {@code CharSequence} to write
-   */
-  public void appendToBuffer(@NonNull CharSequence charSequence) {
-    if (charSequence.length() > 0) {
-      BUFFER.append(charSequence);
-      caret = BUFFER.length();
-      bufferModified();
-    }
-  }
-
-  /**
-   * Appends the specified char {@code ch} to the end of the buffer and sets the caret position
-   * to the end.
-   *
-   * @param ch The {@code char} to write
-   */
-  public void appendToBuffer(char ch) {
-    BUFFER.append(ch);
-    caret = BUFFER.length();
-    bufferModified();
-  }
-
-  /**
    * Commits the current buffer contents to the underlying PrintStream and clears the buffer.
    *
    * @return The contents of the buffer
    *
    * @see #getBufferContents
    */
-  @NonNull
-  public final String commitBuffer() {
-    String bufferContents = BUFFER.toString();
-    println(bufferContents);
-    clearBuffer();
-    onCommit(bufferContents);
 
-    boolean handled = false;
-    for (Processor l : COMMIT_PROCESSORS) {
-      handled = l.process(this, bufferContents);
-      if (handled) {
-        break;
-      }
-    }
-
-    if (!handled) {
-      for (Processor l : COMMIT_PROCESSORS) {
-        l.onUnprocessed(this, bufferContents);
-      }
-    }
-
-    return bufferContents;
-  }
 
   /**
-   * Called when the buffer is {@linkplain #commitBuffer committed}. Subclasses should override this
-   * method instead of implementing and adding themselves as listeners.
+   * Called when the buffer is {@linkplain BufferOp#commit committed}. Subclasses should override
+   * this method instead of implementing and adding themselves as listeners.
    *
    * @param buffer The contents of the buffer
    */
@@ -276,7 +209,7 @@ public class Console extends PrintStream implements InputProcessor {
       case '\r':
       case '\n':
         if (BUFFER.length() > 0) {
-          commitBuffer();
+          buffer.commit();
         }
 
         return true;
@@ -485,6 +418,295 @@ public class Console extends PrintStream implements InputProcessor {
   @Override
   public boolean scrolled(int amount) {
     return false;
+  }
+
+  public class BufferOp implements CharSequence {
+
+    public void clear() {
+      BUFFER.setLength(0);
+      caret = 0;
+    }
+
+    public void set(@Nullable CharSequence s) {
+      BUFFER.setLength(0);
+      append(s);
+    }
+
+    @NonNull
+    public final String commit() {
+      String bufferContents = BUFFER.toString();
+      println(bufferContents);
+      clear();
+      onCommit(bufferContents);
+
+      boolean handled = false;
+      for (Processor l : COMMIT_PROCESSORS) {
+        handled = l.process(Console.this, bufferContents);
+        if (handled) {
+          break;
+        }
+      }
+
+      if (!handled) {
+        for (Processor l : COMMIT_PROCESSORS) {
+          l.onUnprocessed(Console.this, bufferContents);
+        }
+      }
+
+      return bufferContents;
+    }
+
+    @Override
+    public char charAt(int index) {
+      return BUFFER.charAt(index);
+    }
+
+    public void setCharAt(int index, char ch) {
+      BUFFER.setCharAt(index, ch);
+      caret = index + 1;
+    }
+
+    @Override
+    public int length() {
+      return BUFFER.length();
+    }
+
+    public void getChars(int srcBegin, int srcEnd, @NonNull char[] dst, int dstBegin) {
+      BUFFER.getChars(srcBegin, srcEnd, dst, dstBegin);
+    }
+
+    public int indexOf(@Nullable String str) {
+      return BUFFER.indexOf(str);
+    }
+
+    public int indexOf(@Nullable String str, int fromIndex) {
+      return BUFFER.indexOf(str, fromIndex);
+    }
+
+    public int lastIndexOf(@NonNull String str) {
+      return BUFFER.lastIndexOf(str);
+    }
+
+    public int lastIndexOf(@NonNull String str, int fromIndex) {
+      return BUFFER.lastIndexOf(str, fromIndex);
+    }
+
+    public int offsetByCodePoints(int index, int codePointOffset) {
+      return BUFFER.offsetByCodePoints(index, codePointOffset);
+    }
+
+    public void append(boolean b) {
+      BUFFER.append(b);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void append(char c) {
+      BUFFER.append(c);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void append(@NonNull char[] str) {
+      BUFFER.append(str);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void append(@NonNull char[] str, int offset, int len) {
+      BUFFER.append(str, offset, len);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void append(@Nullable CharSequence s) {
+      BUFFER.append(s);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void append(@Nullable CharSequence s, int start) {
+      if (s == null) {
+        append(s);
+      } else {
+        append(s, start, s.length());
+      }
+    }
+
+    public void append(@Nullable CharSequence s, int start, int end) {
+      BUFFER.append(s, start, end);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void append(double d) {
+      BUFFER.append(d);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void append(float f) {
+      BUFFER.append(f);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void append(int i) {
+      BUFFER.append(i);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void append(long lng) {
+      BUFFER.append(lng);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void append(@Nullable Object obj) {
+      BUFFER.append(obj);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void append(@Nullable String str) {
+      BUFFER.append(str);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public void appendCodePoint(int codePoint) {
+      BUFFER.appendCodePoint(codePoint);
+      caret = BUFFER.length();
+      bufferModified();
+    }
+
+    public int codePointAt(int index) {
+      return BUFFER.codePointAt(index);
+    }
+
+    public int codePointBefore(int index) {
+      return BUFFER.codePointBefore(index);
+    }
+
+    public int codePointCount(int beginIndex, int endIndex) {
+      return BUFFER.codePointCount(beginIndex, endIndex);
+    }
+
+    public void insert(int offset, boolean b) {
+      final int length = BUFFER.length();
+      BUFFER.insert(offset, b);
+      caret = offset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    public void insert(int offset, char c) {
+      final int length = BUFFER.length();
+      BUFFER.insert(offset, c);
+      caret = offset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    public void insert(int offset, @NonNull char[] str) {
+      final int length = BUFFER.length();
+      BUFFER.insert(offset, str);
+      caret = offset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    public void insert(int index, @NonNull char[] str, int offset, int len) {
+      final int length = BUFFER.length();
+      BUFFER.insert(offset, str, offset, len);
+      caret = offset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    public void insert(int dstOffset, @Nullable CharSequence s) {
+      final int length = BUFFER.length();
+      BUFFER.insert(dstOffset, s);
+      caret = dstOffset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    public void insert(int dstOffset, @Nullable CharSequence s, int start) {
+      if (s == null) {
+        insert(dstOffset, s);
+      } else {
+        insert(dstOffset, s, start, s.length());
+      }
+    }
+
+    public void insert(int dstOffset, @Nullable CharSequence s, int start, int end) {
+      final int length = BUFFER.length();
+      BUFFER.insert(dstOffset, s, start, end);
+      caret = dstOffset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    public void insert(int offset, double d) {
+      final int length = BUFFER.length();
+      BUFFER.insert(offset, d);
+      caret = offset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    public void insert(int offset, float f) {
+      final int length = BUFFER.length();
+      BUFFER.insert(offset, f);
+      caret = offset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    public void insert(int offset, int i) {
+      final int length = BUFFER.length();
+      BUFFER.insert(offset, i);
+      caret = offset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    public void insert(int offset, long l) {
+      final int length = BUFFER.length();
+      BUFFER.insert(offset, l);
+      caret = offset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    public void insert(int offset, @Nullable Object obj) {
+      final int length = BUFFER.length();
+      BUFFER.insert(offset, obj);
+      caret = offset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    public void insert(int offset, @Nullable String str) {
+      final int length = BUFFER.length();
+      BUFFER.insert(offset, str);
+      caret = offset + (length - BUFFER.length());
+      bufferModified();
+    }
+
+    @NonNull
+    @Override
+    public CharSequence subSequence(int start, int end) {
+      return BUFFER.subSequence(start, end);
+    }
+
+    @NonNull
+    public String substring(int start) {
+      return BUFFER.substring(start);
+    }
+
+    @NonNull
+    public String substring(int start, int end) {
+      return BUFFER.substring(start, end);
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+      return BUFFER.toString();
+    }
+
   }
 
   public interface Processor {

@@ -59,7 +59,7 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
 
       int suggestionsProvided = param.suggest(console, buffer, args, targetParam + 1);
       if (suggestionsProvided == 1) {
-        console.appendToBuffer(' ');
+        console.buffer.append(' ');
       }
 
       return suggestionsProvided;
@@ -73,8 +73,9 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
       case 0:
         return 0;
       case 1:
-        console.setBuffer(commands.firstKey());
-        console.keyTyped(' ');
+        String cmdAlias = commands.firstKey();
+        console.buffer.append(cmdAlias, arg.length());
+        console.buffer.append(' ');
         return 1;
       default:
         final Set<String> commandAliases = commands.keySet();
@@ -91,8 +92,7 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
         }
 
         if (commonPrefix != null && commonPrefix.length() > arg.length()) {
-          String append = commonPrefix.substring(arg.length());
-          console.appendToBuffer(append);
+          console.buffer.append(commonPrefix, arg.length());
         } else {
           int i = 0;
           StringBuilder sb = new StringBuilder(64);

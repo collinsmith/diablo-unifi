@@ -38,8 +38,7 @@ public enum CvarValueSuggester implements Console.SuggestionProvider {
         return 0;
       case 1:
         String onlySuggestion = suggestions.iterator().next();
-        String append = onlySuggestion.substring(str.length());
-        console.appendToBuffer(append);
+        console.buffer.append(onlySuggestion, str.length());
         return 1;
       default:
         String commonPrefix = null;
@@ -54,8 +53,7 @@ public enum CvarValueSuggester implements Console.SuggestionProvider {
         }
 
         if (commonPrefix != null && commonPrefix.length() > str.length()) {
-          append = commonPrefix.substring(str.length());
-          console.appendToBuffer(append);
+          console.buffer.append(commonPrefix, str.length());
         } else {
           int i = 0;
           StringBuilder sb = new StringBuilder(64);
