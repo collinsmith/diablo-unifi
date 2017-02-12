@@ -81,7 +81,7 @@ public class Cvars {
           .suggestions(new GdxFileSuggester(GdxFileHandleResolvers.INTERNAL, new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-              return name.endsWith(".fnt");
+              return dir.isDirectory() || name.endsWith(".fnt");
             }
           }))
           .build();

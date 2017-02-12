@@ -13,6 +13,9 @@ import com.gmail.collinsmith70.cvar.SuggestionProvider;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class GdxFileSuggester implements SuggestionProvider {
 
@@ -34,20 +37,39 @@ public class GdxFileSuggester implements SuggestionProvider {
 
   @Override
   public Collection<String> suggest(@NonNull String str) {
+    final String pathSeparator = "/";
     FileHandle handle = RESOLVER.resolve(Gdx.files.getLocalStoragePath());
     FileHandle[] children = handle.list();
-    Collection<String> matching = new ArrayList<>(children.length);
+    List<String> matching = new ArrayList<>(children.length);
     for (FileHandle child : children) {
       String fileName = child.name();
       if (!fileName.startsWith(str)) {
         continue;
       }
 
-      if (FILTER == null || FILTER.accept(child.parent().file(), fileName)) {
-        matching.add(fileName);
+      if (FILTER == null || FILTER.accept(child.file(), fileName)) {
+        if (child.isDirectory()) {
+          matching.add(fileName + pathSeparator);
+        } else {
+          matching.add(fileName);
+        }
       }
     }
 
+    Collections.sort(matching, new Comparator<String>() {
+      @Override
+      public int compare(String o1, String o2) {
+        if (o1.endsWith(pathSeparator) && o2.endsWith(pathSeparator)) {
+          return o1.compareToIgnoreCase(o2);
+        } else if (o1.endsWith(pathSeparator)) {
+          return -1;
+        } else if (o2.endsWith(pathSeparator)) {
+          return 1;
+        } else {
+          return o1.compareToIgnoreCase(o2);
+        }
+      }
+    });
     return matching;
   }
 }

@@ -107,6 +107,10 @@ public class Command implements Validator {
     return PARAMS[index];
   }
 
+  public boolean hasParam(int index) {
+    return 0 <= index && index < PARAMS.length;
+  }
+
   @IntRange(from = 0)
   public int numArgs() {
     return PARAMS.length;

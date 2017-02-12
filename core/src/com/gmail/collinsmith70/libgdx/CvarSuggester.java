@@ -2,6 +2,7 @@ package com.gmail.collinsmith70.libgdx;
 
 import com.google.common.base.Strings;
 
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
 import com.gmail.collinsmith70.cvar.Cvar;
@@ -15,14 +16,14 @@ public enum CvarSuggester implements Console.SuggestionProvider {
 
   @Override
   public int suggest(@NonNull Console console, @NonNull CharSequence buffer,
-                     @NonNull String[] args) {
+                     @NonNull String[] args, @IntRange(from = 0) int targetArg) {
     if (buffer.length() == 0) {
       return 0;
-    } else if (buffer.charAt(buffer.length() - 1) == ' ') {
+    }/* else if (buffer.charAt(buffer.length() - 1) == ' ') {
       return 0;
-    }
+    }*/
 
-    String arg = args[args.length - 1];
+    String arg = targetArg == args.length ? "" : args[targetArg];
     Collection<Cvar> cvars = Diablo.client.cvars().prefixMap(arg).values();
     switch (cvars.size()) {
       case 0:

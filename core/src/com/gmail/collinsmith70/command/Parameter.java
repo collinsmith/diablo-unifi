@@ -2,6 +2,7 @@ package com.gmail.collinsmith70.command;
 
 import com.google.common.base.Preconditions;
 
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -113,11 +114,11 @@ public class Parameter<T> implements StringSerializer<T>, Validator, Console.Sug
 
   @Override
   public int suggest(@NonNull Console console, @NonNull CharSequence buffer,
-                         @NonNull String[] args) {
+                     @NonNull String[] args, @IntRange(from = 0) int arg) {
     if (suggestionProvider == null) {
       throw new UnsupportedOperationException(this + " cannot process console input");
     }
 
-    return suggestionProvider.suggest(console, buffer, args);
+    return suggestionProvider.suggest(console, buffer, args, arg);
   }
 }

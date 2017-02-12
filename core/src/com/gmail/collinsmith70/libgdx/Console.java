@@ -445,7 +445,7 @@ public class Console extends PrintStream implements InputProcessor {
           }
         };
         for (SuggestionProvider l : SUGGESTION_PROVIDERS) {
-          handled = l.suggest(this, bufferWrapper, args) > 0;
+          handled = l.suggest(this, bufferWrapper, args, 0) > 0;
           if (handled) {
             break;
           }
@@ -498,7 +498,8 @@ public class Console extends PrintStream implements InputProcessor {
   public interface SuggestionProvider {
 
     @IntRange(from = 0)
-    int suggest(@NonNull Console console, @NonNull CharSequence buffer, @NonNull String[] args);
+    int suggest(@NonNull Console console, @NonNull CharSequence buffer,
+                @NonNull String[] args, @IntRange(from = 0) int arg);
 
   }
 

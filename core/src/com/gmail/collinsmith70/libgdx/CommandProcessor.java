@@ -2,6 +2,7 @@ package com.gmail.collinsmith70.libgdx;
 
 import com.google.common.base.Strings;
 
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
 import com.badlogic.gdx.Gdx;
@@ -31,35 +32,42 @@ public class CommandProcessor implements Console.Processor, Console.SuggestionPr
 
   @Override
   public int suggest(@NonNull Console console, @NonNull CharSequence buffer,
-                     @NonNull String[] args) {
+                     @NonNull String[] args, @IntRange(from = 0) int targetArg) {
     if (buffer.length() == 0) {
-      return 0;
-    } else if (buffer.charAt(buffer.length() - 1) == ' ') {
       return 0;
     }
 
+    char lastCh = buffer.charAt(buffer.length() - 1);
     if (args.length == 0) {
       return 0;
     } else if (args.length > 1) {
-      Command command = COMMANDS.get(args[0]);
+      Command command = COMMANDS.get(args[targetArg]);
       if (command == null) {
         return 0;
       }
 
-      Parameter param = command.getParam(args.length - 2);
+      // args[0] is command, so params are offset by 1
+      int targetParam = args.length - 2;
+      if (lastCh == ' ' && command.hasParam(targetParam + 1)) {
+        targetParam += 1;
+      }
+
+      Parameter param = command.getParam(targetParam);
       if (!param.canSuggest()) {
         return 0;
       }
 
-      int suggestionsProvided = param.suggest(console, buffer, args);
+      int suggestionsProvided = param.suggest(console, buffer, args, targetParam + 1);
       if (suggestionsProvided == 1) {
         console.appendToBuffer(' ');
       }
 
       return suggestionsProvided;
+    } else if (lastCh == ' ') {
+      return 0;
     }
 
-    String arg = args[0];
+    String arg = args[targetArg];
     SortedMap<String, Command> commands = COMMANDS.prefixMap(arg);
     switch (commands.size()) {
       case 0:

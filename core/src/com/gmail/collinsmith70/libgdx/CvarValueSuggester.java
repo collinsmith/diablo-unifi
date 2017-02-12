@@ -2,8 +2,10 @@ package com.gmail.collinsmith70.libgdx;
 
 import com.google.common.base.Strings;
 
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
+import com.gmail.collinsmith70.command.ParameterException;
 import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.diablo.Diablo;
 
@@ -15,20 +17,21 @@ public enum CvarValueSuggester implements Console.SuggestionProvider {
 
   @Override
   public int suggest(@NonNull Console console, @NonNull CharSequence buffer,
-                     @NonNull String[] args) {
+                     @NonNull String[] args, @IntRange(from = 0) int targetArg) {
     if (buffer.length() == 0) {
       return 0;
-    } else if (buffer.charAt(buffer.length() - 1) == ' ') {
+    }/* else if (buffer.charAt(buffer.length() - 1) == ' ') {
       return 0;
-    }
+    }*/
 
-    String alias = args[args.length - 2];
+    String alias = args[targetArg - 1];
     Cvar cvar = Diablo.client.cvars().get(alias);
     if (cvar == null) {
-      return 0;
+      throw new ParameterException("A parameter of type %s must precede a CvarValueSuggester",
+          Cvar.class.getName());
     }
 
-    String str = args[args.length - 1];
+    String str = targetArg == args.length ? "" : args[targetArg];
     Collection<String> suggestions = cvar.suggest(str);
     switch (suggestions.size()) {
       case 0:
