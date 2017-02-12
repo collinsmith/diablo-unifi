@@ -26,7 +26,6 @@ import com.gmail.collinsmith70.libgdx.key.MappedKey;
 import com.gmail.collinsmith70.libgdx.util.PropagatingInputProcessor;
 
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Collection;
@@ -70,7 +69,7 @@ public class Client extends ApplicationAdapter {
     boolean usesStdOut = true;
     OutputStream consoleOut;
     if (usesStdOut) {
-      consoleOut = new PrintStream(System.out);
+      consoleOut = System.out;
     } else {
       FileHandle consoleFileHandle = Gdx.files.local("console.out");
       consoleOut = consoleFileHandle.write(false);
@@ -164,8 +163,8 @@ public class Client extends ApplicationAdapter {
       @Override
       public void onUnprocessed(@NonNull Console console, @NonNull String buffer) {
         super.onUnprocessed(console, buffer);
-        console.println(
-            "Unrecognized command \"%s\". To see available commands, type \"%s\"",
+        console.format(
+            "Unrecognized command \"%s\". To see available commands, type \"%s\"%n",
             buffer,
             Commands.help.getAlias());
       }

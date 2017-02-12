@@ -15,10 +15,7 @@ import java.io.PrintStream;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-@SuppressWarnings({ "WeakerAccess", "ConstantConditions", "unused", "UnusedReturnValue" })
 public class Console extends PrintStream implements InputProcessor {
-
-  private static final String TAG = "Console";
 
   /**
    * Initial capacity of {@link #BUFFER}.
@@ -65,29 +62,6 @@ public class Console extends PrintStream implements InputProcessor {
   }
 
   /**
-   * Helper method to prevent as many annoying implementations of
-   * {@link String#format(String, Object...)}.
-   *
-   * @param format The format of the message
-   * @param args   The arguments to place into the {@code message}
-   *
-   * @see #println(String)
-   * @see String#format(String, Object...)
-   */
-  public void println(@NonNull String format, @Nullable Object... args) {
-    println(String.format(format, args));
-  }
-
-  /**
-   * Commits the current buffer contents to the underlying PrintStream and clears the buffer.
-   *
-   * @return The contents of the buffer
-   *
-   * @see #getBufferContents
-   */
-
-
-  /**
    * Called when the buffer is {@linkplain BufferOp#commit committed}. Subclasses should override
    * this method instead of implementing and adding themselves as listeners.
    *
@@ -112,15 +86,6 @@ public class Console extends PrintStream implements InputProcessor {
    */
   public int getBufferLength() {
     return BUFFER.length();
-  }
-
-  /**
-   * Returns whether or not the buffer is empty.
-   *
-   * @return {@code true} if the buffer is empty, otherwise {@code false}
-   */
-  public boolean isBufferEmpty() {
-    return BUFFER.length() == 0;
   }
 
   /**
@@ -208,6 +173,41 @@ public class Console extends PrintStream implements InputProcessor {
   }
 
   /**
+   * Adds a Processor to receive buffer commits.
+   *
+   * @param l Processor to add
+   *
+   * @return {@code true} if the specified Processor was added, otherwise {@code false}
+   */
+  public boolean addProcessor(@NonNull Processor l) {
+    Validate.isTrue(l != null);
+    return COMMIT_PROCESSORS.add(l);
+  }
+
+  /**
+   * Removes the specified Processor.
+   *
+   * @param l Processor to remove
+   *
+   * @return {@code true} if the specified Processor was removed, otherwise {@code false}
+   */
+  public boolean removeProcessor(@Nullable Processor l) {
+    return COMMIT_PROCESSORS.remove(l);
+  }
+
+  /**
+   * Checks whether or not a specified Processor will receive buffer commits.
+   *
+   * @param l Processor to check
+   *
+   * @return {@code true} if the specified Processor will receive buffer commits, otherwise {@code
+   * false}
+   */
+  public boolean containsProcessor(@Nullable Processor l) {
+    return COMMIT_PROCESSORS.contains(l);
+  }
+
+  /**
    * Adds a SuggestionProvider to receive buffer events.
    *
    * @param l SuggestionProvider to add
@@ -240,41 +240,6 @@ public class Console extends PrintStream implements InputProcessor {
    */
   public boolean containsSuggestionProvider(@Nullable SuggestionProvider l) {
     return SUGGESTION_PROVIDERS.contains(l);
-  }
-
-  /**
-   * Adds a Processor to receive buffer commits.
-   *
-   * @param l Processor to add
-   *
-   * @return {@code true} if the specified Processor was added, otherwise {@code false}
-   */
-  public boolean addProcessor(@NonNull Processor l) {
-    Validate.isTrue(l != null);
-    return COMMIT_PROCESSORS.add(l);
-  }
-
-  /**
-   * Removes the specified Processor.
-   *
-   * @param l Processor to remove
-   *
-   * @return {@code true} if the specified Processor was removed, otherwise {@code false}
-   */
-  public boolean removeProcessor(@Nullable Processor l) {
-    return COMMIT_PROCESSORS.remove(l);
-  }
-
-  /**
-   * Checks whether or not a specified Processor will receive buffer commits.
-   *
-   * @param l Processor to check
-   *
-   * @return {@code true} if the specified Processor will receive buffer commits, otherwise
-   *         {@code false}
-   */
-  public boolean containsProcessor(@Nullable Processor l) {
-    return COMMIT_PROCESSORS.contains(l);
   }
 
   @Override
@@ -411,6 +376,10 @@ public class Console extends PrintStream implements InputProcessor {
     @Override
     public int length() {
       return BUFFER.length();
+    }
+
+    public boolean isEmpty() {
+      return BUFFER.length() == 0;
     }
 
     public void getChars(int srcBegin, int srcEnd, @NonNull char[] dst, int dstBegin) {

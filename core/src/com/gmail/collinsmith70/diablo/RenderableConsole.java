@@ -18,7 +18,11 @@ import com.gmail.collinsmith70.cvar.Cvar;
 import com.gmail.collinsmith70.cvar.CvarStateAdapter;
 import com.gmail.collinsmith70.libgdx.Console;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
+
+import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -34,6 +38,7 @@ public class RenderableConsole extends Console implements Disposable {
   private float height;
 
   private final List<String> OUTPUT = new ArrayList<>();
+  private final ByteArrayOutputStream BUFFER = new ByteArrayOutputStream();
   private int scrollOffset;
   private int scrollOffsetMin;
 
@@ -319,9 +324,41 @@ public class RenderableConsole extends Console implements Disposable {
   }
 
   @Override
-  public void println(@NonNull String str) {
-    super.println(str);
-    OUTPUT.add(str);
+  public void write(byte[] buf) throws IOException {
+    super.write(buf);
+    BUFFER.write(buf);
+    for (byte b : buf) {
+      if (b == '\n') {
+        flush();
+      }
+    }
+  }
+
+  @Override
+  public void write(int b) {
+    super.write(b);
+    BUFFER.write(b);
+    if (b == '\n') {
+      flush();
+    }
+  }
+
+  @Override
+  public void write(byte[] buf, int off, int len) {
+    super.write(buf, off, len);
+    BUFFER.write(buf, off, len);
+    for (int i = off; i < off + len; i++) {
+      if (buf[i] == '\n') {
+        flush();
+      }
+    }
+  }
+
+  @Override
+  public void flush() {
+    super.flush();
+    OUTPUT.add(BUFFER.toString(Charset.forName("US-ASCII")));
+    BUFFER.reset();
     int size = OUTPUT.size();
     if (scrollOffset == size - 1) {
       scrollOffset = size;

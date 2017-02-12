@@ -93,7 +93,7 @@ class Commands {
         public void onExecuted(@NonNull Command.Instance instance) {
           Collection<Cvar> cvars = Diablo.client.cvars().getCvars();
           for (Cvar cvar : cvars) {
-            Diablo.client.console.println("%s \"%s\"; %s (Default: \"%s\")",
+            Diablo.client.console.format("%s \"%s\"; %s (Default: \"%s\")%n",
                 cvar.getAlias(), cvar.get(), cvar.getDescription(), cvar.getDefault());
           }
         }
@@ -115,7 +115,7 @@ class Commands {
                 alias, cvars.getAlias());
           }
 
-          Diablo.client.console.println("%s = %s", cvar.getAlias(), cvar.get());
+          Diablo.client.console.format("%s = %s%n", cvar.getAlias(), cvar.get());
         }
       })
       .build();
