@@ -39,10 +39,20 @@ public class GdxFileSuggester implements SuggestionProvider {
   public Collection<String> suggest(@NonNull String str) {
     final String pathSeparator = "/";
     FileHandle handle = RESOLVER.resolve(Gdx.files.getLocalStoragePath());
+    String pathPart = null;
+    int lastPathSep = str.lastIndexOf(pathSeparator);
+    if (lastPathSep != -1) {
+      pathPart = str.substring(0, lastPathSep) + pathSeparator;
+      FileHandle resolvedHandle = handle.child(pathPart);
+      if (resolvedHandle.exists()) {
+        handle = resolvedHandle;
+      }
+    }
+
     FileHandle[] children = handle.list();
     List<String> matching = new ArrayList<>(children.length);
     for (FileHandle child : children) {
-      String fileName = child.name();
+      String fileName = pathPart != null ? pathPart + child.name() : child.name();
       if (!fileName.startsWith(str)) {
         continue;
       }
