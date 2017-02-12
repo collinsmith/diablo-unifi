@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@code SaveableCvarManager} contains mappings between class types and {@link StringSerializer}
  * instances which can be used to (de)serialize them for saving/loading.
  */
-@SuppressWarnings({ "SameParameterValue", "WeakerAccess", "unused", "ConstantConditions" })
+@SuppressWarnings("ALL")
 @Deprecated
 public abstract class SaveableCvarManager extends com.gmail.collinsmith70.cvar.CvarManager {
 

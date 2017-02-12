@@ -54,10 +54,12 @@ public class GdxCvarManager extends SaveableCvarManager {
     StringSerializer<T> serializer
         = MoreObjects.firstNonNull(cvar.getSerializer(), getSerializer(cvar));
     if (serializer == null) {
+      //noinspection finally
       try {
         throw new CvarManagerException("%s cannot be loaded (no deserializer found for %s)",
             alias, cvar.getType().getName());
       } finally {
+        //noinspection ReturnInsideFinallyBlock
         return cvar.getDefault();
       }
     }

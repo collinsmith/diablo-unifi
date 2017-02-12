@@ -109,6 +109,7 @@ public class Client extends ApplicationAdapter {
     return height;
   }
 
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   public boolean isWindowedForced() {
     return forceWindowed;
   }

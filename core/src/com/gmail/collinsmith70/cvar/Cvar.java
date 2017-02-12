@@ -135,12 +135,12 @@ public class Cvar<T> implements SuggestionProvider {
 
     this.value = value;
     if (isLoaded) {
-      for (StateListener l : STATE_LISTENERS) {
+      for (StateListener<T> l : STATE_LISTENERS) {
         l.onChanged(this, prev, value);
       }
     } else {
       this.isLoaded = true;
-      for (StateListener l : STATE_LISTENERS) {
+      for (StateListener<T> l : STATE_LISTENERS) {
         l.onLoaded(this, value);
       }
     }
@@ -175,7 +175,7 @@ public class Cvar<T> implements SuggestionProvider {
     if (!Objects.equal(value, DEFAULT_VALUE)) {
       final T prev = this.value;
       this.value = DEFAULT_VALUE;
-      for (StateListener l : STATE_LISTENERS) {
+      for (StateListener<T> l : STATE_LISTENERS) {
         l.onChanged(this, prev, value);
       }
     }

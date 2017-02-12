@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.gmail.collinsmith70.cvar.Cvar;
-import com.gmail.collinsmith70.cvar.ValidatableCvar;
 import com.gmail.collinsmith70.validator.Validator;
 
 import org.apache.commons.collections4.Trie;
@@ -26,7 +25,7 @@ import java.util.Iterator;
  *   </li>
  * </ul>
  */
-@SuppressWarnings({ "unused", "SimplifiableIfStatement" })
+@SuppressWarnings("ALL")
 @Deprecated
 public class CvarManager implements com.gmail.collinsmith70.cvar.Cvar.StateListener, Iterable<com.gmail.collinsmith70.cvar.Cvar> {
 

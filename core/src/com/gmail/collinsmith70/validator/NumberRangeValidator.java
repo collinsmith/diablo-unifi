@@ -22,7 +22,7 @@ public class NumberRangeValidator<T extends Number & Comparable<? super T>>
   }
 
   @NonNull
-  private Class<T> TYPE;
+  private final Class<T> TYPE;
 
   @Nullable
   private final T MIN;

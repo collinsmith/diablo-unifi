@@ -18,6 +18,7 @@ public enum CvarSuggester implements Console.SuggestionProvider {
   public int suggest(@NonNull Console console, @NonNull CharSequence buffer,
                      @NonNull String[] args, @IntRange(from = 0) int targetArg) {
     String arg = targetArg == args.length ? "" : args[targetArg];
+    //noinspection ConstantConditions
     SortedMap<String, Cvar> cvars = Diablo.client.cvars().prefixMap(arg);
     switch (cvars.size()) {
       case 0:

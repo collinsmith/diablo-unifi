@@ -66,6 +66,7 @@ public abstract class SaveableCvarManager extends CvarManager {
   @Override
   @SuppressWarnings("unchecked")
   public boolean add(@NonNull Cvar cvar) {
+    //noinspection finally
     try {
       Object value = load(cvar);
       cvar.set(value);
@@ -73,6 +74,7 @@ public abstract class SaveableCvarManager extends CvarManager {
       Throwables.propagateIfPossible(t, SerializeException.class);
       throw new SerializeException(t);
     } finally {
+      //noinspection ReturnInsideFinallyBlock
       return super.add(cvar);
     }
   }
@@ -109,12 +111,14 @@ public abstract class SaveableCvarManager extends CvarManager {
   }
 
   @Nullable
+  @SuppressWarnings("unchecked")
   public <T> StringSerializer<T> getSerializer(@NonNull Class<T> type) {
     Preconditions.checkArgument(type != null, "type cannot be null");
     return SERIALIZERS.get(type);
   }
 
   @Nullable
+  @SuppressWarnings("unchecked")
   public <T> StringSerializer<T> getSerializer(@NonNull Cvar<T> cvar) {
     return SERIALIZERS.get(cvar.TYPE);
   }

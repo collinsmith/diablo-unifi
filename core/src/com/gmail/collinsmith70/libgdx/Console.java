@@ -113,6 +113,7 @@ public class Console extends PrintStream implements InputProcessor {
    *
    * @param buffer The contents of the buffer
    */
+  @SuppressWarnings("EmptyMethod")
   protected void onModified(@NonNull String buffer, int position) {}
 
   /**

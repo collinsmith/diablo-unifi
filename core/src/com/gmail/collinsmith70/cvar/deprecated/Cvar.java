@@ -16,7 +16,7 @@ import com.gmail.collinsmith70.serializer.StringSerializer;
  *
  * @see <a href="https://en.wikipedia.org/wiki/CVAR">Wikipedia article on CVARs</a>
  */
-@SuppressWarnings("unused")
+@SuppressWarnings("ALL")
 @Deprecated
 public interface Cvar<T> {
 

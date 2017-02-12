@@ -17,7 +17,7 @@ import com.gmail.collinsmith70.validator.Validator;
  * @param <T> The {@linkplain Class type} of the {@linkplain #getValue variable} which this
  *            {@code SimpleCvar} represents
  */
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings("ALL")
 @Deprecated
 public final class ValidatableCvar<T> extends com.gmail.collinsmith70.cvar.SimpleCvar<T> implements Validatable {
 

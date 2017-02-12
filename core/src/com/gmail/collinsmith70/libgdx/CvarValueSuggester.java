@@ -18,6 +18,7 @@ public enum CvarValueSuggester implements Console.SuggestionProvider {
   public int suggest(@NonNull Console console, @NonNull CharSequence buffer,
                      @NonNull String[] args, @IntRange(from = 0) int targetArg) {
     String alias = args[targetArg - 1];
+    //noinspection ConstantConditions
     Cvar cvar = Diablo.client.cvars().get(alias);
     if (cvar == null) {
       throw new ParameterException(
@@ -26,7 +27,7 @@ public enum CvarValueSuggester implements Console.SuggestionProvider {
     }
 
     String arg = targetArg == args.length ? "" : args[targetArg];
-    Collection<String> suggestions = cvar.suggest(arg);
+    @SuppressWarnings("unchecked") Collection<String> suggestions = cvar.suggest(arg);
     switch (suggestions.size()) {
       case 0:
         return 0;

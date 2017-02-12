@@ -324,7 +324,7 @@ public class RenderableConsole extends Console implements Disposable {
   }
 
   @Override
-  public void write(byte[] buf) throws IOException {
+  public void write(@NonNull byte[] buf) throws IOException {
     super.write(buf);
     BUFFER.write(buf);
     for (byte b : buf) {
@@ -344,7 +344,7 @@ public class RenderableConsole extends Console implements Disposable {
   }
 
   @Override
-  public void write(byte[] buf, int off, int len) {
+  public void write(@NonNull byte[] buf, int off, int len) {
     super.write(buf, off, len);
     BUFFER.write(buf, off, len);
     for (int i = off; i < off + len; i++) {

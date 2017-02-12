@@ -41,7 +41,6 @@ public class DesktopLauncher {
           HelpFormatter formatter = new HelpFormatter();
           formatter.printHelp("diablo", options);
           System.exit(0);
-          return;
         }
       }
     }
@@ -82,6 +81,7 @@ public class DesktopLauncher {
       public void onChanged(@NonNull Cvar<Boolean> cvar, @Nullable Boolean from,
                             @Nullable Boolean to) {
         if (!client.isWindowedForced()) {
+          //noinspection ConstantConditions
           if (to) {
             Gdx.graphics.setWindowedMode(client.width(), client.height());
           } else {
@@ -94,6 +94,7 @@ public class DesktopLauncher {
     Cvars.Client.Display.BackgroundFPSLimit.addStateListener(new CvarStateAdapter<Short>() {
       @Override
       public void onChanged(@NonNull Cvar<Short> cvar, @Nullable Short from, @Nullable Short to) {
+        //noinspection ConstantConditions
         config.backgroundFPS = to;
       }
     });
@@ -101,6 +102,7 @@ public class DesktopLauncher {
     Cvars.Client.Display.ForegroundFPSLimit.addStateListener(new CvarStateAdapter<Short>() {
       @Override
       public void onChanged(@NonNull Cvar<Short> cvar, @Nullable Short from, @Nullable Short to) {
+        //noinspection ConstantConditions
         config.foregroundFPS = to;
       }
     });

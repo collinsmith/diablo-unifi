@@ -101,7 +101,7 @@ public class CvarManager implements Cvar.StateListener, Iterable<Cvar> {
       super(reason);
     }
 
-    public CvarManagerException(@Nullable String format, @Nullable Object... args) {
+    public CvarManagerException(@NonNull String format, @Nullable Object... args) {
       super(String.format(format, args));
     }
 

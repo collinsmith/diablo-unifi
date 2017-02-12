@@ -55,7 +55,7 @@ public abstract class KeyMapper implements MappedKey.AssignmentListener, Iterabl
       }
     });
     return new Iterator<MappedKey>() {
-      Set<MappedKey> alreadyReturned = new HashSet<>();
+      final Set<MappedKey> alreadyReturned = new HashSet<>();
 
       @Override
       public boolean hasNext() {

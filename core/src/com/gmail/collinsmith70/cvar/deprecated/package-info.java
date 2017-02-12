@@ -11,5 +11,6 @@
  * @author csmith
  * @version 1.0
  */
+@Deprecated
 package com.gmail.collinsmith70.cvar.deprecated;
 
