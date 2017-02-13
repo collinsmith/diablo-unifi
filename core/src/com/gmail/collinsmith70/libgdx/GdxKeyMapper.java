@@ -6,11 +6,11 @@ import android.support.annotation.Nullable;
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.utils.ObjectSet;
 import com.gmail.collinsmith70.libgdx.key.MappedKey;
 import com.gmail.collinsmith70.libgdx.key.SaveableKeyMapper;
-import com.gmail.collinsmith70.libgdx.util.PropagatingInputProcessor;
 import com.gmail.collinsmith70.serializer.IntArrayStringSerializer;
 import com.gmail.collinsmith70.serializer.SerializeException;
 
@@ -114,20 +114,11 @@ public class GdxKeyMapper extends SaveableKeyMapper {
     return new InputProcessor();
   }
 
-  @NonNull
-  public com.badlogic.gdx.InputProcessor newInputProcessor(@NonNull InputProcessor inputProcessor) {
-    return new InputProcessor(inputProcessor);
-  }
-
   @SuppressWarnings("unused")
-  private class InputProcessor extends PropagatingInputProcessor {
+  private class InputProcessor extends InputAdapter {
 
-    public InputProcessor() {
+    private InputProcessor() {
       super();
-    }
-
-    public InputProcessor(@NonNull InputProcessor inputProcessor) {
-      super(inputProcessor);
     }
 
     @Override
@@ -139,7 +130,7 @@ public class GdxKeyMapper extends SaveableKeyMapper {
         }
       }
 
-      return super.keyDown(keycode);
+      return false;
     }
 
     @Override
@@ -151,7 +142,7 @@ public class GdxKeyMapper extends SaveableKeyMapper {
         }
       }
 
-      return super.keyUp(keycode);
+      return false;
     }
 
   }
