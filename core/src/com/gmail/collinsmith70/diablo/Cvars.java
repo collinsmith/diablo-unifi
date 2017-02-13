@@ -8,6 +8,7 @@ import com.gmail.collinsmith70.libgdx.util.GdxFileHandleResolvers;
 import com.gmail.collinsmith70.serializer.LocaleStringSerializer;
 import com.gmail.collinsmith70.validator.NonNullSubclassValidator;
 import com.gmail.collinsmith70.validator.NumberRangeValidator;
+import com.gmail.collinsmith70.validator.Validator;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -62,6 +63,7 @@ public class Cvars {
         .description("Whether or not the client is in windowed mode. Note: This cvar is ignored " +
             "when the client is started with the -windowed option")
         .defaultValue(Boolean.FALSE)
+        .validator(Validator.ACCEPT_NON_NULL)
         .build();
 
     public static class Console {
@@ -155,6 +157,39 @@ public class Cvars {
           .defaultValue((short) 0)
           .validator(NumberRangeValidator.of(Byte.class, (byte) 0, null))
           .build();
+
+    }
+
+    public static class Sound {
+
+      private Sound() {}
+
+      public static final Cvar<Boolean> Enabled = Cvar.builder(Boolean.class)
+          .alias("Client.Sound.Enabled")
+          .description("Whether or not sound is enabled")
+          .defaultValue(Boolean.TRUE)
+          .validator(Validator.ACCEPT_NON_NULL)
+          .build();
+
+      public static class Music {
+
+        private Music() {}
+
+        public static final Cvar<Boolean> Enabled = Cvar.builder(Boolean.class)
+            .alias("Client.Sound.Music.Enabled")
+            .description("Whether or not music is enabled")
+            .defaultValue(Boolean.TRUE)
+            .validator(Validator.ACCEPT_NON_NULL)
+            .build();
+
+        public static final Cvar<Float> Volume = Cvar.builder(Float.class)
+            .alias("Client.Sound.Music.Volume")
+            .description("Whether or not music is enabled")
+            .defaultValue(0.80f)
+            .validator(NumberRangeValidator.of(Float.class, 0.0f, 1.0f))
+            .build();
+
+      }
 
     }
   }

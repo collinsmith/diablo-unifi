@@ -9,6 +9,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -22,6 +23,9 @@ import com.gmail.collinsmith70.libgdx.Console;
 import com.gmail.collinsmith70.libgdx.GdxCommandManager;
 import com.gmail.collinsmith70.libgdx.GdxCvarManager;
 import com.gmail.collinsmith70.libgdx.GdxKeyMapper;
+import com.gmail.collinsmith70.libgdx.audio.MusicController;
+import com.gmail.collinsmith70.libgdx.audio.MusicVolumeController;
+import com.gmail.collinsmith70.libgdx.audio.VolumeControlledMusicLoader;
 import com.gmail.collinsmith70.libgdx.key.MappedKey;
 import com.gmail.collinsmith70.libgdx.util.PropagatingInputProcessor;
 
@@ -45,6 +49,8 @@ public class Client extends ApplicationAdapter {
   private GdxCvarManager cvars;
   private GdxKeyMapper keys;
 
+  private MusicController music;
+
   private boolean forceWindowed;
   private boolean forceDrawFps;
 
@@ -65,6 +71,8 @@ public class Client extends ApplicationAdapter {
 
     FileHandleResolver fhResolver = new InternalFileHandleResolver();
     this.assets = new AssetManager(fhResolver);
+    assets.setLoader(Music.class,
+        new VolumeControlledMusicLoader(fhResolver, new MusicVolumeController()));
 
     boolean usesStdOut = true;
     OutputStream consoleOut;
@@ -99,6 +107,11 @@ public class Client extends ApplicationAdapter {
   @Nullable
   public GdxKeyMapper keys() {
     return keys;
+  }
+
+  @Nullable
+  public MusicController music() {
+    return music;
   }
 
   public int width() {
@@ -172,6 +185,9 @@ public class Client extends ApplicationAdapter {
     };
     console.addProcessor(processor);
     console.addSuggestionProvider(processor);
+
+    this.music = new MusicController(assets);
+    music.play("audio/music/intro.ogg");
 
     setupCvars();
 
