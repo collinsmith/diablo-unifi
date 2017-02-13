@@ -15,6 +15,7 @@ import java.lang.ref.WeakReference;
 
 public class VolumeControlledMusicLoader extends MusicLoader implements VolumeControlled<Music> {
 
+  @Nullable
   private VolumeController<Music> controller;
 
   public VolumeControlledMusicLoader(@NonNull FileHandleResolver resolver,
@@ -35,7 +36,8 @@ public class VolumeControlledMusicLoader extends MusicLoader implements VolumeCo
   }
 
   @Override
-  public void loadAsync(AssetManager manager, String fileName, FileHandle file, MusicParameter parameter) {
+  public void loadAsync(AssetManager manager, String fileName, FileHandle file,
+                        MusicParameter parameter) {
     super.loadAsync(manager, fileName, file, parameter);
     final Music music = getLoadedMusic();
     if (controller != null) {
