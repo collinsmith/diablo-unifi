@@ -262,6 +262,13 @@ public class RenderableConsole extends Console implements Disposable {
 
   @Override
   public boolean keyDown(int keycode) {
+    if (Keys.Console.isAssigned(keycode)) {
+      visible = !visible;
+      return true;
+    } else if (!visible) {
+      return false;
+    }
+
     switch (keycode) {
       case Input.Keys.MENU:
       case Input.Keys.ESCAPE:
@@ -288,8 +295,21 @@ public class RenderableConsole extends Console implements Disposable {
   }
 
   @Override
+  public boolean keyUp(int keycode) {
+    if (!visible) {
+      return false;
+    }
+
+    return super.keyUp(keycode);
+  }
+
+  @Override
   @SuppressWarnings("SimplifiableIfStatement")
   public boolean keyTyped(char ch) {
+    if (!visible) {
+      return false;
+    }
+
     if (Keys.Console.isAssigned(Input.Keys.valueOf(Character.toString(ch)))) {
       return true;
     }
@@ -299,6 +319,10 @@ public class RenderableConsole extends Console implements Disposable {
 
   @Override
   public boolean scrolled(int amount) {
+    if (!visible) {
+      return false;
+    }
+
     if (font == null) {
       return super.scrolled(amount);
     }
@@ -319,8 +343,39 @@ public class RenderableConsole extends Console implements Disposable {
 
   @Override
   public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+    if (!visible) {
+      return false;
+    }
+
     Gdx.input.setOnscreenKeyboardVisible(true);
     return super.touchDown(screenX, screenY, pointer, button);
+  }
+
+  @Override
+  public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+    if (!visible) {
+      return false;
+    }
+
+    return super.touchUp(screenX, screenY, pointer, button);
+  }
+
+  @Override
+  public boolean touchDragged(int screenX, int screenY, int pointer) {
+    if (!visible) {
+      return false;
+    }
+
+    return super.touchDragged(screenX, screenY, pointer);
+  }
+
+  @Override
+  public boolean mouseMoved(int screenX, int screenY) {
+    if (!visible) {
+      return false;
+    }
+
+    return super.mouseMoved(screenX, screenY);
   }
 
   @Override

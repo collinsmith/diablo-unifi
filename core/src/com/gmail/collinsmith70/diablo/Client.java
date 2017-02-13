@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
@@ -30,7 +31,6 @@ import com.gmail.collinsmith70.libgdx.audio.SoundVolumeController;
 import com.gmail.collinsmith70.libgdx.audio.VolumeControlledMusicLoader;
 import com.gmail.collinsmith70.libgdx.audio.VolumeControlledSoundLoader;
 import com.gmail.collinsmith70.libgdx.key.MappedKey;
-import com.gmail.collinsmith70.libgdx.util.PropagatingInputProcessor;
 
 import java.io.OutputStream;
 import java.text.DateFormat;
@@ -195,9 +195,12 @@ public class Client extends ApplicationAdapter {
 
     setupCvars();
 
+    InputMultiplexer inputProcessor = new InputMultiplexer();
+    inputProcessor.addProcessor(console);
+
     Gdx.input.setCatchBackKey(true);
     Gdx.input.setCatchMenuKey(true);
-    Gdx.input.setInputProcessor(newInputProcessor());
+    Gdx.input.setInputProcessor(inputProcessor);
 
     this.batch = new SpriteBatch();
   }
@@ -304,100 +307,5 @@ public class Client extends ApplicationAdapter {
         drawFpsMethod = to == null ? 0 : to;
       }
     });
-  }
-
-  private com.badlogic.gdx.InputProcessor newInputProcessor() {
-    return new InputProcessor();
-  }
-
-  private com.badlogic.gdx.InputProcessor newInputProcessor(
-      @NonNull com.badlogic.gdx.InputProcessor inputProcessor) {
-    return new InputProcessor(inputProcessor);
-  }
-
-  private class InputProcessor extends PropagatingInputProcessor {
-
-    public InputProcessor() {
-      super();
-    }
-
-    public InputProcessor(@NonNull com.badlogic.gdx.InputProcessor inputProcessor) {
-      super(inputProcessor);
-    }
-
-    @Override
-    public boolean keyDown(int keycode) {
-      if (Keys.Console.isAssigned(keycode)) {
-        console.setVisible(!console.isVisible());
-        return true;
-      } else if (console.isVisible()) {
-        return console.keyDown(keycode);
-      }
-
-      return super.keyDown(keycode);
-    }
-
-    @Override
-    public boolean keyUp(int keycode) {
-      if (console.isVisible()) {
-        return console.keyUp(keycode);
-      }
-
-      return super.keyUp(keycode);
-    }
-
-    @Override
-    public boolean keyTyped(char ch) {
-      if (console.isVisible()) {
-        return console.keyTyped(ch);
-      }
-
-      return super.keyTyped(ch);
-    }
-
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-      if (console.isVisible()) {
-        return console.touchDown(screenX, screenY, pointer, button);
-      }
-
-      return super.touchDown(screenX, screenY, pointer, button);
-    }
-
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-      if (console.isVisible()) {
-        return console.touchUp(screenX, screenY, pointer, button);
-      }
-
-      return super.touchUp(screenX, screenY, pointer, button);
-    }
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-      if (console.isVisible()) {
-        return console.touchDragged(screenX, screenY, pointer);
-      }
-
-      return super.touchDragged(screenX, screenY, pointer);
-    }
-
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-      if (console.isVisible()) {
-        return console.mouseMoved(screenX, screenY);
-      }
-
-      return super.mouseMoved(screenX, screenY);
-    }
-
-    @Override
-    public boolean scrolled(int amount) {
-      if (console.isVisible()) {
-        return console.scrolled(amount);
-      }
-
-      return super.scrolled(amount);
-    }
   }
 }
