@@ -57,6 +57,7 @@ public class MusicVolumeController implements VolumeController<Music> {
     for (WeakReference<Music> container : MANAGED) {
       final Music track = container.get();
       if (track == null) {
+        //noinspection SuspiciousMethodCalls
         MANAGED.remove(track);
         continue;
       }
@@ -102,6 +103,7 @@ public class MusicVolumeController implements VolumeController<Music> {
 
   @Override
   public boolean remove(@Nullable Object obj) {
+    //noinspection SuspiciousMethodCalls
     return MANAGED.remove(obj);
   }
 }
