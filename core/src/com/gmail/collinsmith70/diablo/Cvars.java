@@ -185,7 +185,27 @@ public class Cvars {
         public static final Cvar<Float> Volume = Cvar.builder(Float.class)
             .alias("Client.Sound.Music.Volume")
             .description("Whether or not music is enabled")
-            .defaultValue(0.80f)
+            .defaultValue(0.50f)
+            .validator(NumberRangeValidator.of(Float.class, 0.0f, 1.0f))
+            .build();
+
+      }
+
+      public static class Effects {
+
+        private Effects() {}
+
+        public static final Cvar<Boolean> Enabled = Cvar.builder(Boolean.class)
+            .alias("Client.Sound.Effects.Enabled")
+            .description("Whether or not music is enabled")
+            .defaultValue(Boolean.TRUE)
+            .validator(Validator.ACCEPT_NON_NULL)
+            .build();
+
+        public static final Cvar<Float> Volume = Cvar.builder(Float.class)
+            .alias("Client.Sound.Effects.Volume")
+            .description("Whether or not music is enabled")
+            .defaultValue(0.50f)
             .validator(NumberRangeValidator.of(Float.class, 0.0f, 1.0f))
             .build();
 
