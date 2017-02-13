@@ -38,7 +38,8 @@ public class NumberRangeValidator<T extends Number & Comparable<? super T>>
    * @param max The maximum value of the {@code NumberRangeValidator}
    */
   public NumberRangeValidator(@NonNull Class<T> type, @Nullable T min, @Nullable T max) {
-    this.TYPE = Preconditions.checkNotNull(type);
+    Preconditions.checkArgument(type != null, "Type cannot be null");
+    this.TYPE = type;
     this.MIN = min;
     this.MAX = max;
   }

@@ -51,6 +51,7 @@ public class SoundVolumeController implements VolumeController<Sound> {
   }
 
   // TODO: Add support for refreshing current effects' volumes
+  @SuppressWarnings("EmptyMethod")
   private void refreshVolume() {
     //...
   }

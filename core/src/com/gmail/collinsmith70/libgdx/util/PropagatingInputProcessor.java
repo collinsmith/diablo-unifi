@@ -16,7 +16,8 @@ public class PropagatingInputProcessor implements InputProcessor {
   }
 
   public PropagatingInputProcessor(@NonNull InputProcessor inputProcessor) {
-    this.PROPAGATOR = Preconditions.checkNotNull(inputProcessor);
+    Preconditions.checkArgument(inputProcessor != null, "InputProcessor cannot be null");
+    this.PROPAGATOR = inputProcessor;
   }
 
   @Override

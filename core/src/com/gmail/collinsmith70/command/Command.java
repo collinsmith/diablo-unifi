@@ -369,19 +369,22 @@ public class Command implements Validator {
 
     @NonNull
     public Builder description(@NonNull String description) {
-      this.description = Preconditions.checkNotNull(description);
+      Preconditions.checkArgument(description != null, "Descriptions cannot be null");
+      this.description = description;
       return this;
     }
 
     @NonNull
     public Builder params(@NonNull Parameter... params) {
-      this.params = Preconditions.checkNotNull(params);
+      Preconditions.checkArgument(params != null, "Parameters cannot be null");
+      this.params = params;
       return this;
     }
 
     @NonNull
     public Builder action(@NonNull Action action) {
-      this.action = Preconditions.checkNotNull(action);
+      Preconditions.checkArgument(action != null, "Actions cannot be null");
+      this.action = action;
       return this;
     }
 

@@ -240,18 +240,21 @@ public class Cvar<T> implements SuggestionProvider {
     private boolean requiresRestart = false;
 
     private Builder(@NonNull Class<T> type) {
-      this.TYPE = Preconditions.checkNotNull(type);
+      Preconditions.checkArgument(type != null, "Type cannot be null");
+      this.TYPE = type;
     }
 
     @NonNull
     public Builder<T> alias(@NonNull String alias) {
-      this.alias = Preconditions.checkNotNull(alias);
+      Preconditions.checkArgument(alias != null, "Aliases cannot be null");
+      this.alias = alias;
       return this;
     }
 
     @NonNull
     public Builder<T> description(@NonNull String description) {
-      this.description = Preconditions.checkNotNull(description);
+      Preconditions.checkArgument(description != null, "Descriptions cannot be null");
+      this.description = description;
       return this;
     }
 
@@ -263,19 +266,22 @@ public class Cvar<T> implements SuggestionProvider {
 
     @NonNull
     public Builder<T> validator(@NonNull Validator validator) {
-      this.validator = Preconditions.checkNotNull(validator);
+      Preconditions.checkArgument(validator != null, "Validators cannot be null");
+      this.validator = validator;
       return this;
     }
 
     @NonNull
     public Builder<T> suggestions(@NonNull SuggestionProvider suggestions) {
-      this.suggestions = Preconditions.checkNotNull(suggestions);
+      Preconditions.checkArgument(suggestions != null, "SuggestionProviders cannot be null");
+      this.suggestions = suggestions;
       return this;
     }
 
     @NonNull
     public Builder<T> serializer(@NonNull StringSerializer<T> serializer) {
-      this.serializer = Preconditions.checkNotNull(serializer);
+      Preconditions.checkArgument(serializer != null, "Serializers cannot be null");
+      this.serializer = serializer;
       return this;
     }
 
