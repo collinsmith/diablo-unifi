@@ -25,6 +25,7 @@ public class CvarManager implements Cvar.StateListener, Iterable<Cvar> {
     return CVARS.values();
   }
 
+  @NonNull
   @Override
   public Iterator<Cvar> iterator() {
     return CVARS.values().iterator();
@@ -32,7 +33,7 @@ public class CvarManager implements Cvar.StateListener, Iterable<Cvar> {
 
   @SuppressWarnings("unchecked")
   public boolean add(@NonNull Cvar cvar) {
-    final String alias = cvar.ALIAS;
+    final String alias = cvar.ALIAS.toLowerCase();
     final Cvar queriedCvar = CVARS.get(alias);
     if (Objects.equal(queriedCvar, cvar)) {
       return false;
@@ -51,7 +52,7 @@ public class CvarManager implements Cvar.StateListener, Iterable<Cvar> {
       return false;
     }
 
-    final String alias = cvar.ALIAS;
+    final String alias = cvar.ALIAS.toLowerCase();
     final Cvar queriedCvar = CVARS.get(alias);
     return Objects.equal(queriedCvar, cvar)
         && CVARS.remove(alias) != null;
@@ -63,12 +64,12 @@ public class CvarManager implements Cvar.StateListener, Iterable<Cvar> {
       return null;
     }
 
-    return (Cvar<T>) CVARS.get(alias);
+    return (Cvar<T>) CVARS.get(alias.toLowerCase());
   }
 
   @NonNull
   public SortedMap<String, Cvar> prefixMap(@Nullable String alias) {
-    return CVARS.prefixMap(alias);
+    return CVARS.prefixMap(alias.toLowerCase());
   }
 
   public boolean isManaging(@Nullable Cvar cvar) {
@@ -76,13 +77,13 @@ public class CvarManager implements Cvar.StateListener, Iterable<Cvar> {
       return false;
     }
 
-    final String alias = cvar.ALIAS;
+    final String alias = cvar.ALIAS.toLowerCase();
     final Cvar queriedCvar = CVARS.get(alias);
     return Objects.equal(queriedCvar, cvar);
   }
 
   public boolean isManaging(@Nullable String alias) {
-    return alias != null && CVARS.containsKey(alias);
+    return alias != null && CVARS.containsKey(alias.toLowerCase());
   }
 
   @Override
