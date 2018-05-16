@@ -4,6 +4,8 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.badlogic.gdx.Application;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.gmail.collinsmith70.util.StringUtils;
@@ -143,6 +145,9 @@ public class Console extends PrintStream implements InputProcessor {
     switch (ch) {
       case '\0':
         return true;
+      case '\3':
+        buffer.clear();
+        return true;
       case '\b':
         if (caret > 0) {
           BUFFER.deleteCharAt(--caret);
@@ -167,6 +172,10 @@ public class Console extends PrintStream implements InputProcessor {
       case '\t':
         return true;
       default:
+        if (ch == '.' && Gdx.app.getType() == Application.ApplicationType.Android) {
+          return true;
+        }
+
         BUFFER.insert(caret++, ch);
         bufferModified();
         return true;
@@ -263,6 +272,11 @@ public class Console extends PrintStream implements InputProcessor {
         caretMoved();
         return true;
       case Input.Keys.TAB:
+      case Input.Keys.PERIOD:
+        if (keycode == Input.Keys.PERIOD && Gdx.app.getType() != Application.ApplicationType.Android) {
+          break;
+        }
+
         final int length = BUFFER.length();
         if (caret != length || length == 0) {
           break;
